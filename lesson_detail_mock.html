@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - レッスン詳細</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 2rem; padding: 1.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .info-table th, .info-table td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid #eee; }
+    .info-table th { color: #666; width: 140px; background: #f8f9fa; }
+    .material-link { color: #007bff; text-decoration: underline; }
+    .host-info { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; }
+    .attendance-table { width: 100%; border-collapse: collapse; }
+    .attendance-table th, .attendance-table td { border: 1px solid #ddd; padding: 0.7rem; }
+    .attendance-table th { background: #f8f9fa; }
+    .attendance-table tr:nth-child(even) { background: #fafbfc; }
+    .late-input { width: 60px; }
+    .report-area { width: 100%; min-height: 80px; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 1rem; }
+    .submit-btn { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 2px; cursor: pointer; font-size: 1rem; }
+    .submit-btn:hover { background: #1e7e34; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">CTSコーチ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>研修一覧</li>
+      <li>タイムライン</li>
+      <li>スケジュール</li>
+      <li>生徒一覧</li>
+      <li class="active">クラス一覧</li>
+      <li>経費・交通費申請</li>
+      <li>月次レポート送信</li>
+      <li>評価コメント送信</li>
+      <li>問合せ</li>
+      <li>よくあるご質問</li>
+      <li>アカウント設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">
+      <a href="training_info_mock.html" class="material-link">&lt; 研修情報に戻る</a> |
+      <a href="class_detail_mock.html" class="material-link">クラス詳細に戻る</a>
+    </div>
+
+    <!-- 教材 -->
+    <div class="section">
+      <div class="section-title">教材</div>
+      <table class="info-table">
+        <thead>
+          <tr>
+            <th>教材名</th>
+            <th>使用箇所</th>
+            <th>ダウンロード</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Listen & Quick Answer Level 1（初中学用）</td>
+            <td>Unit 2, p.12-15</td>
+            <td><a href="#" class="material-link">教材ダウンロード</a></td>
+          </tr>
+          <tr>
+            <td>Smart CHOICE 4th edition Level 1（基準学用）</td>
+            <td>Unit 1 Review, p.20-21</td>
+            <td><a href="#" class="material-link">教材ダウンロード</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 教務からの指示事項 -->
+    <div class="section">
+      <div class="section-title">教務からの指示事項</div>
+      <ul>
+        <li>本日のレッスンではUnit 2の復習を重点的に行ってください。</li>
+        <li>受講生の発話機会を多く設けてください。</li>
+        <li>出席状況・遅刻理由も必ず記録してください。</li>
+      </ul>
+    </div>
+
+    <!-- オンラインURL・ホスト情報 -->
+    <div class="section">
+      <div class="section-title">オンラインURL・ホスト情報</div>
+      <div class="host-info">
+        <div><strong>Zoom URL：</strong><a href="https://zoom.us/j/xxxxxx" target="_blank">https://zoom.us/j/xxxxxx</a></div>
+        <div><strong>ホストメール：</strong>info+lesson30@cts-n.net</div>
+        <div><strong>ホストパスワード：</strong>Cts#2020</div>
+      </div>
+    </div>
+
+    <!-- 出欠入力 -->
+    <div class="section">
+      <div class="section-title">出欠入力</div>
+      <form>
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th>出席</th>
+              <th>氏名</th>
+              <th>英字氏名</th>
+              <th>遅刻（分）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><input type="checkbox" name="attend1" checked></td>
+              <td>津留 春美</td>
+              <td>Tsuru Haruka</td>
+              <td><input type="number" class="late-input" name="late1" min="0" value="0"> 分</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" name="attend2"></td>
+              <td>田中太 芳樹</td>
+              <td>Tanaka Yoshiki</td>
+              <td><input type="number" class="late-input" name="late2" min="0" value="0"> 分</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" name="attend3" checked></td>
+              <td>中尾 美咲</td>
+              <td>Kabata Misaki</td>
+              <td><input type="number" class="late-input" name="late3" min="0" value="5"> 分</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" name="attend4" checked></td>
+              <td>瀬口 勇斗</td>
+              <td>Seguchi Yuto</td>
+              <td><input type="number" class="late-input" name="late4" min="0" value="0"> 分</td>
+            </tr>
+            <tr>
+              <td><input type="checkbox" name="attend5" checked></td>
+              <td>岡田 清之</td>
+              <td>Okada Kiyoyuki</td>
+              <td><input type="number" class="late-input" name="late5" min="0" value="0"> 分</td>
+            </tr>
+          </tbody>
+        </table>
+      </form>
+    </div>
+
+    <!-- レポート入力 -->
+    <div class="section">
+      <div class="section-title">レポート入力</div>
+      <textarea class="report-area" placeholder="本日のレッスン内容・受講生の様子・気づき等を記入してください"></textarea>
+      <button class="submit-btn">レポートを提出</button>
+    </div>
+  </div>
+</body>
+</html> 

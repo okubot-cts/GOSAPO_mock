@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 研修情報</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 2rem; padding: 1.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .info-table th, .info-table td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid #eee; }
+    .info-table th { color: #666; width: 140px; background: #f8f9fa; }
+    .class-table { width: 100%; border-collapse: collapse; }
+    .class-table th, .class-table td { border: 1px solid #ddd; padding: 0.7rem; }
+    .class-table th { background: #f8f9fa; }
+    .class-table tr:nth-child(even) { background: #fafbfc; }
+    .students-table { width: 100%; border-collapse: collapse; }
+    .students-table th, .students-table td { border: 1px solid #ddd; padding: 0.7rem; }
+    .students-table th { background: #f8f9fa; }
+    .students-table tr:nth-child(even) { background: #fafbfc; }
+    .load-more-btn { background: #007bff; color: #fff; border: none; padding: 0.6rem 1.2rem; border-radius: 2px; cursor: pointer; font-size: 0.95rem; margin: 1rem auto 0 auto; display: block; }
+    .load-more-btn:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">CTSコーチ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li class="active">研修一覧</li>
+      <li>タイムライン</li>
+      <li>スケジュール</li>
+      <li>生徒一覧</li>
+      <li>クラス一覧</li>
+      <li>経費・交通費申請</li>
+      <li>月次レポート送信</li>
+      <li>評価コメント送信</li>
+      <li>問合せ</li>
+      <li>よくあるご質問</li>
+      <li>アカウント設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">&lt; 戻る</div>
+
+    <!-- 企業情報 -->
+    <div class="section">
+      <div class="section-title">企業情報</div>
+      <table class="info-table">
+        <tr><th>企業名</th><td>タツタ電線株式会社</td></tr>
+        <tr><th>所在地</th><td>大阪府東大阪市</td></tr>
+        <tr><th>事業内容</th><td>電線・ケーブル、電子材料、光ファイバー等の製造・販売</td></tr>
+        <tr><th>Webサイト</th><td><a href="https://www.tatsuta.co.jp/company/outline/" target="_blank">https://www.tatsuta.co.jp/company/outline/</a></td></tr>
+      </table>
+    </div>
+
+    <!-- 研修情報 -->
+    <div class="section">
+      <div class="section-title">研修情報</div>
+      <table class="info-table">
+        <tr><th>研修名</th><td>2025年度 英語研修</td></tr>
+        <tr><th>期間</th><td>2025年7月1日 〜 2026年4月30日</td></tr>
+        <tr><th>対象</th><td>全社員（希望者）</td></tr>
+        <tr><th>実施形態</th><td>オンライン・対面併用</td></tr>
+        <tr><th>概要</th><td>英語・中国語の語学力向上を目的とした自己啓発型研修。複数クラスをレベル別に開講。</td></tr>
+      </table>
+    </div>
+
+    <!-- クラス一覧 -->
+    <div class="section">
+      <div class="section-title">クラス一覧</div>
+      <table class="class-table">
+        <thead>
+          <tr>
+            <th>クラス名</th>
+            <th>レベル</th>
+            <th>曜日・時間</th>
+            <th>担当講師</th>
+            <th>実施形態</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="class_detail_mock.html" class="material-link">英語 Basic 1</a></td>
+            <td>初級</td>
+            <td>火曜 17:30-19:00</td>
+            <td>Jeremy McCarver</td>
+            <td>オンライン</td>
+          </tr>
+          <tr>
+            <td><a href="class_detail_mock.html" class="material-link">英語 Basic 2</a></td>
+            <td>初級</td>
+            <td>水曜 17:30-19:00</td>
+            <td>Matt Lowerson</td>
+            <td>オンライン</td>
+          </tr>
+          <tr>
+            <td><a href="class_detail_mock.html" class="material-link">英語 Elementary</a></td>
+            <td>初中級</td>
+            <td>水曜 17:30-19:00</td>
+            <td>Julio Brockbank</td>
+            <td>オンライン</td>
+          </tr>
+          <tr>
+            <td><a href="class_detail_mock.html" class="material-link">英語 Intermediate</a></td>
+            <td>中級</td>
+            <td>水曜 17:30-19:00</td>
+            <td>Stephen Sumi</td>
+            <td>オンライン</td>
+          </tr>
+          <tr>
+            <td><a href="class_detail_mock.html" class="material-link">英語 Pre-intermediate</a></td>
+            <td>中級手前</td>
+            <td>木曜 17:30-19:00</td>
+            <td>Michael Yuen</td>
+            <td>オンライン</td>
+          </tr>
+          <tr>
+            <td><a href="class_detail_mock.html" class="material-link">中国語 初級</a></td>
+            <td>初級</td>
+            <td>月曜 17:30-19:00</td>
+            <td>陸ペイ</td>
+            <td>対面</td>
+          </tr>
+          <tr>
+            <td><a href="class_detail_mock.html" class="material-link">中国語 入門</a></td>
+            <td>入門</td>
+            <td>水曜 17:30-19:00</td>
+            <td>黄 琦</td>
+            <td>対面</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 受講生一覧 -->
+    <div class="section">
+      <div class="section-title">受講生一覧（30名まで表示）</div>
+      <table class="students-table">
+        <thead>
+          <tr>
+            <th>氏名</th>
+            <th>英字氏名</th>
+            <th>メールアドレス</th>
+            <th>所属クラス</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><a href="lesson_detail_mock.html" class="material-link">津留 春美</a></td><td>Tsuru Haruka</td><td>h-tsuru@sample.co.jp</td><td>英語 Basic 1</td></tr>
+          <tr><td><a href="lesson_detail_mock.html" class="material-link">田中太 芳樹</a></td><td>Tanaka Yoshiki</td><td>y-tanaka@sample.co.jp</td><td>英語 Basic 1</td></tr>
+          <tr><td><a href="lesson_detail_mock.html" class="material-link">中尾 美咲</a></td><td>Kabata Misaki</td><td>m-kabata@sample.co.jp</td><td>英語 Basic 1</td></tr>
+          <tr><td><a href="lesson_detail_mock.html" class="material-link">瀬口 勇斗</a></td><td>Seguchi Yuto</td><td>y-seguchi@sample.co.jp</td><td>英語 Basic 1</td></tr>
+          <tr><td><a href="lesson_detail_mock.html" class="material-link">岡田 清之</a></td><td>Okada Kiyoyuki</td><td>k-okada@sample.co.jp</td><td>英語 Basic 1</td></tr>
+          <!-- ... 25名分のダミーデータ ... -->
+          <tr><td><a href="lesson_detail_mock.html" class="material-link">受講生26</a></td><td>Student26</td><td>student26@sample.co.jp</td><td>英語 Basic 2</td></tr>
+          <tr><td><a href="lesson_detail_mock.html" class="material-link">受講生27</a></td><td>Student27</td><td>student27@sample.co.jp</td><td>英語 Basic 2</td></tr>
+          <tr><td><a href="lesson_detail_mock.html" class="material-link">受講生28</a></td><td>Student28</td><td>student28@sample.co.jp</td><td>英語 Elementary</td></tr>
+          <tr><td><a href="lesson_detail_mock.html" class="material-link">受講生29</a></td><td>Student29</td><td>student29@sample.co.jp</td><td>英語 Intermediate</td></tr>
+          <tr><td><a href="lesson_detail_mock.html" class="material-link">受講生30</a></td><td>Student30</td><td>student30@sample.co.jp</td><td>中国語 初級</td></tr>
+        </tbody>
+      </table>
+      <button class="load-more-btn">さらに読み込む</button>
+    </div>
+  </div>
+</body>
+</html> 

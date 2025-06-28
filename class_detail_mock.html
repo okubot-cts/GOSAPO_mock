@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - クラス詳細</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 2rem; padding: 1.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .info-table th, .info-table td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid #eee; }
+    .info-table th { color: #666; width: 140px; background: #f8f9fa; }
+    .students-list { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .student-card { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; min-width: 220px; flex: 1; }
+    .student-name { font-weight: bold; margin-bottom: 0.3rem; }
+    .progress-bar { background: #e9ecef; border-radius: 10px; height: 6px; margin-top: 0.5rem; }
+    .progress-fill { background: #28a745; height: 100%; border-radius: 10px; }
+    .curriculum-table { width: 100%; border-collapse: collapse; }
+    .curriculum-table th, .curriculum-table td { border: 1px solid #ddd; padding: 0.7rem; }
+    .curriculum-table th { background: #f8f9fa; }
+    .curriculum-table tr:nth-child(even) { background: #fafbfc; }
+    .lesson-status { font-size: 0.85rem; border-radius: 10px; padding: 0.2rem 0.7rem; }
+    .completed { background: #d4edda; color: #155724; }
+    .upcoming { background: #cce7ff; color: #004085; }
+    .in-progress { background: #fff3cd; color: #856404; }
+    .material-link { color: #007bff; text-decoration: underline; }
+    .instructor-info { margin-top: 0.5rem; color: #555; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">CTSコーチ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>研修一覧</li>
+      <li>タイムライン</li>
+      <li>スケジュール</li>
+      <li>生徒一覧</li>
+      <li class="active">クラス一覧</li>
+      <li>経費・交通費申請</li>
+      <li>月次レポート送信</li>
+      <li>評価コメント送信</li>
+      <li>問合せ</li>
+      <li>よくあるご質問</li>
+      <li>アカウント設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb"><a href="training_info_mock.html" class="material-link">&lt; 研修情報に戻る</a></div>
+
+    <!-- クラス情報 -->
+    <div class="section">
+      <div class="section-title">クラス情報</div>
+      <table class="info-table">
+        <tr><th>企業名</th><td>タツタ電線株式会社</td></tr>
+        <tr><th>研修名</th><td>2025年度 英語研修</td></tr>
+        <tr><th>クラス名</th><td>英語 Basic 1</td></tr>
+        <tr><th>レベル</th><td>初級</td></tr>
+        <tr><th>開講期間</th><td>2025年7月2日 〜 2026年2月25日</td></tr>
+        <tr><th>曜日・時間</th><td>火曜日 17:30-19:00</td></tr>
+        <tr><th>担当講師</th><td>Jeremy McCarver <span class="instructor-info">（英語ネイティブ講師・ビジネス英語/日常英会話10年以上）<br>連絡先: jeremy.mccarver@cts-education.com</span></td></tr>
+        <tr><th>実施形態</th><td>オンライン</td></tr>
+      </table>
+    </div>
+
+    <!-- 講師向け指示事項 -->
+    <div class="section">
+      <div class="section-title">講師向け指示事項</div>
+      <ul>
+        <li>レッスン開始10分前にはZoomに入室してください。</li>
+        <li>教材の配布・回収状況を毎回確認してください。</li>
+        <li>受講生の出席状況・進捗に応じて補足説明や個別フォローを行ってください。</li>
+        <li>レッスン終了後、GOSAPOにて簡単なフィードバックを入力してください。</li>
+        <li>特記事項やトラブルがあれば、教務担当まで速やかにご連絡ください。</li>
+      </ul>
+    </div>
+
+    <!-- 教材情報 -->
+    <div class="section">
+      <div class="section-title">使用教材</div>
+      <table class="info-table">
+        <tr>
+          <th>メイン教材</th>
+          <td>
+            Listen & Quick Answer Level 1（初中学用）<br>
+            <a href="#" class="material-link">教材ダウンロード</a>
+          </td>
+        </tr>
+        <tr>
+          <th>補助教材</th>
+          <td>
+            Smart CHOICE 4th edition Level 1（基準学用）<br>
+            <a href="#" class="material-link">教材ダウンロード</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- 受講生一覧 -->
+    <div class="section">
+      <div class="section-title">受講生一覧（5名）</div>
+      <table class="info-table">
+        <thead>
+          <tr>
+            <th>氏名</th>
+            <th>英字氏名</th>
+            <th>メールアドレス</th>
+            <th>出席回数</th>
+            <th>出席率</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>津留 春美</td>
+            <td>Tsuru Haruka</td>
+            <td>h-tsuru@sample.co.jp</td>
+            <td>6/7</td>
+            <td>85%</td>
+          </tr>
+          <tr>
+            <td>田中太 芳樹</td>
+            <td>Tanaka Yoshiki</td>
+            <td>y-tanaka@sample.co.jp</td>
+            <td>6/6</td>
+            <td>100%</td>
+          </tr>
+          <tr>
+            <td>中尾 美咲</td>
+            <td>Kabata Misaki</td>
+            <td>m-kabata@sample.co.jp</td>
+            <td>5/7</td>
+            <td>71%</td>
+          </tr>
+          <tr>
+            <td>瀬口 勇斗</td>
+            <td>Seguchi Yuto</td>
+            <td>y-seguchi@sample.co.jp</td>
+            <td>6/7</td>
+            <td>85%</td>
+          </tr>
+          <tr>
+            <td>岡田 清之</td>
+            <td>Okada Kiyoyuki</td>
+            <td>k-okada@sample.co.jp</td>
+            <td>7/7</td>
+            <td>100%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- カリキュラム・レッスン一覧 -->
+    <div class="section">
+      <div class="section-title">レッスン一覧・カリキュラム</div>
+      <table class="curriculum-table">
+        <thead>
+          <tr>
+            <th>回</th><th>日程</th><th>開始時間</th><th>終了時間</th><th>内容</th><th>教材</th><th>宿題</th><th>オンライン入室</th><th>ステータス</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="lesson_detail_mock.html" class="material-link">1</a></td><td>2025/07/02</td><td>17:30</td><td>19:00</td><td>Self introductions / 効果的な自己学習法</td><td>L&QA L1 使用</td><td>L1 review</td><td><button class="material-link" onclick="window.open('https://zoom.us/j/xxxxxx')">入室</button></td><td><span class="lesson-status completed">完了</span></td>
+          </tr>
+          <tr>
+            <td><a href="lesson_detail_mock.html" class="material-link">2</a></td><td>2025/07/09</td><td>17:30</td><td>19:00</td><td>Homework Check</td><td>L&QA Unit 1</td><td>L1 review, L2 prep</td><td><button class="material-link" onclick="window.open('https://zoom.us/j/xxxxxx')">入室</button></td><td><span class="lesson-status completed">完了</span></td>
+          </tr>
+          <tr>
+            <td><a href="lesson_detail_mock.html" class="material-link">3</a></td><td>2025/07/16</td><td>17:30</td><td>19:00</td><td>Homework Check</td><td>L&QA Unit 2</td><td>L2 review, L3 prep</td><td><button class="material-link" onclick="window.open('https://zoom.us/j/xxxxxx')">入室</button></td><td><span class="lesson-status in-progress">実施中</span></td>
+          </tr>
+          <tr>
+            <td><a href="lesson_detail_mock.html" class="material-link">4</a></td><td>2025/07/23</td><td>17:30</td><td>19:00</td><td>英語学習への姿勢修正「日本語と英語の構造の違い」</td><td>L&QA Unit 3</td><td>Counseling, class review</td><td><button class="material-link" onclick="window.open('https://zoom.us/j/xxxxxx')">入室</button></td><td><span class="lesson-status upcoming">予定</span></td>
+          </tr>
+          <tr>
+            <td><a href="lesson_detail_mock.html" class="material-link">5</a></td><td>2025/07/30</td><td>17:30</td><td>19:00</td><td>Homework Check</td><td>L&QA Unit 4</td><td>L4 review, L5 prep</td><td><button class="material-link" onclick="window.open('https://zoom.us/j/xxxxxx')">入室</button></td><td><span class="lesson-status upcoming">予定</span></td>
+          </tr>
+          <tr>
+            <td><a href="lesson_detail_mock.html" class="material-link">6</a></td><td>2025/08/06</td><td>17:30</td><td>19:00</td><td>Homework Check</td><td>L&QA Unit 5</td><td>L5 review, L6 prep</td><td><button class="material-link" onclick="window.open('https://zoom.us/j/xxxxxx')">入室</button></td><td><span class="lesson-status upcoming">予定</span></td>
+          </tr>
+          <tr>
+            <td><a href="lesson_detail_mock.html" class="material-link">7</a></td><td>2025/08/13</td><td>17:30</td><td>19:00</td><td>リスニングのコツ（入門編）</td><td>L&QA Unit 6,7</td><td>L6,7 review, L8,9 prep</td><td><button class="material-link" onclick="window.open('https://zoom.us/j/xxxxxx')">入室</button></td><td><span class="lesson-status upcoming">予定</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html> 
