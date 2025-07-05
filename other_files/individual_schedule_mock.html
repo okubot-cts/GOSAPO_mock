@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 個別研修日程調整</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; }
+    .btn-primary { background: #007bff; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-warning:hover { background: #e0a800; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; margin-bottom: 2rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .info-table th, .info-table td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid #eee; }
+    .info-table th { color: #666; width: 140px; background: #f8f9fa; }
+    .progress-container { margin: 1rem 0; }
+    .progress-bar { width: 100%; height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden; margin: 0.5rem 0; }
+    .progress-fill { height: 100%; background: #007bff; transition: width 0.3s ease; }
+    .progress-stats { display: flex; justify-content: space-between; font-size: 0.9rem; color: #666; }
+    .workflow-steps { display: flex; justify-content: space-between; margin-bottom: 2rem; }
+    .workflow-step { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .workflow-step.active .step-circle { background: #007bff; color: #fff; }
+    .workflow-step.completed .step-circle { background: #28a745; color: #fff; }
+    .step-circle { width: 30px; height: 30px; border-radius: 50%; background: #e9ecef; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; }
+    .step-label { font-size: 0.8rem; margin-top: 0.5rem; text-align: center; }
+    .step-line { height: 2px; background: #e9ecef; flex: 1; margin: 0 1rem; align-self: center; }
+    .step-line.active { background: #007bff; }
+    .step-line.completed { background: #28a745; }
+    .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+    .lesson-schedule { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; }
+    .schedule-header { background: #f8f9fa; padding: 1rem; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+    .schedule-title { font-weight: bold; }
+    .schedule-actions { display: flex; gap: 0.5rem; }
+    .lesson-list { max-height: 600px; overflow-y: auto; }
+    .lesson-item { padding: 1rem; border-bottom: 1px solid #eee; }
+    .lesson-item:last-child { border-bottom: none; }
+    .lesson-item.confirmed { border-left: 4px solid #28a745; }
+    .lesson-item.pending { border-left: 4px solid #ffc107; }
+    .lesson-item.rejected { border-left: 4px solid #dc3545; }
+    .lesson-item.tentative { border-left: 4px solid #17a2b8; }
+    .lesson-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .lesson-title { font-weight: bold; }
+    .status-badge { padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+    .status-confirmed { background: #d4edda; color: #155724; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-tentative { background: #d1ecf1; color: #0c5460; }
+    .lesson-details { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+    .lesson-actions { display: flex; gap: 0.5rem; }
+    .action-btn { background: none; border: none; color: #007bff; cursor: pointer; font-size: 0.8rem; }
+    .action-btn:hover { text-decoration: underline; }
+    .candidate-dates { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; }
+    .candidate-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 0.5rem; }
+    .candidate-item.selected { background: #e3f2fd; border-color: #007bff; }
+    .candidate-item.available { background: #f8f9fa; }
+    .candidate-item.unavailable { background: #f8d7da; border-color: #dc3545; }
+    .candidate-info { flex: 1; }
+    .candidate-date { font-weight: bold; margin-bottom: 0.2rem; }
+    .candidate-time { font-size: 0.9rem; color: #666; }
+    .candidate-status { font-size: 0.8rem; }
+    .candidate-actions { display: flex; gap: 0.5rem; }
+    .participants-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 2rem; }
+    .participants-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+    .participant-group { border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; }
+    .participant-group.instructor { border-color: #007bff; }
+    .participant-group.company { border-color: #28a745; }
+    .participant-group.student { border-color: #ffc107; }
+    .participant-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .participant-title { font-weight: bold; }
+    .participant-count { font-size: 0.9rem; color: #666; }
+    .participant-list { list-style: none; padding: 0; margin: 0; }
+    .participant-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+    .participant-item:last-child { border-bottom: none; }
+    .participant-name { font-weight: 500; }
+    .participant-role { font-size: 0.8rem; color: #666; }
+    .participant-availability { font-size: 0.8rem; padding: 0.2rem 0.4rem; border-radius: 8px; }
+    .available { background: #d4edda; color: #155724; }
+    .unavailable { background: #f8d7da; color: #721c24; }
+    .pending { background: #fff3cd; color: #856404; }
+    .communication-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 2rem; }
+    .communication-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .communication-feed { max-height: 400px; overflow-y: auto; }
+    .communication-item { display: flex; gap: 1rem; padding: 1rem; border-bottom: 1px solid #eee; }
+    .communication-item:last-child { border-bottom: none; }
+    .communication-avatar { width: 40px; height: 40px; border-radius: 50%; background: #007bff; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .communication-content { flex: 1; }
+    .communication-meta { display: flex; justify-content: between; align-items: center; margin-bottom: 0.5rem; }
+    .communication-author { font-weight: bold; }
+    .communication-time { font-size: 0.8rem; color: #666; margin-left: 1rem; }
+    .communication-message { font-size: 0.9rem; line-height: 1.4; }
+    .communication-actions { margin-top: 0.5rem; }
+    .quick-response { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-top: 1rem; }
+    .quick-response textarea { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; resize: vertical; min-height: 80px; }
+    .quick-response-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
+    .bulk-actions { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 2rem; }
+    .bulk-actions-header { font-weight: bold; margin-bottom: 1rem; }
+    .bulk-actions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .bulk-action-item { display: flex; align-items: center; gap: 0.5rem; }
+    .bulk-action-item input[type="checkbox"] { margin-right: 0.5rem; }
+    .summary-actions { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; text-align: center; }
+    .summary-actions .btn-primary { margin: 0 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">GOSAPO運営スタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>研修一覧</li>
+      <li>オファー管理</li>
+      <li class="active">日程調整</li>
+      <li>ダッシュボード</li>
+      <li>スケジュール</li>
+      <li>講師一覧</li>
+      <li>クライアント管理</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">← 日程調整一覧</div>
+    
+    <div class="page-header">
+      <div class="page-title">タツタ電線 2025年度英語研修 - 日程調整</div>
+      <div>
+        <button class="btn-secondary">エクスポート</button>
+        <button class="btn-primary">一括確定</button>
+      </div>
+    </div>
+
+    <!-- 研修基本情報 -->
+    <div class="section">
+      <div class="section-title">研修基本情報</div>
+      <table class="info-table">
+        <tr><th>研修名</th><td>2025年度 英語研修</td></tr>
+        <tr><th>期間</th><td>2025年7月1日 〜 2026年4月30日</td></tr>
+        <tr><th>総レッスン数</th><td>40回</td></tr>
+        <tr><th>レッスン形態</th><td>オンライン・対面併用</td></tr>
+        <tr><th>担当講師</th><td>Jeremy McCarver</td></tr>
+        <tr><th>参加予定者</th><td>8名</td></tr>
+      </table>
+      <div class="progress-container">
+        <div class="progress-stats">
+          <span>進捗状況</span>
+          <span>15/40回確定 (37.5%)</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 37.5%;"></div>
+        </div>
+        <div class="progress-stats">
+          <span>確定済み: 15回</span>
+          <span>調整中: 12回</span>
+          <span>未調整: 13回</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ワークフロー -->
+    <div class="workflow-steps">
+      <div class="workflow-step completed">
+        <div class="step-circle">1</div>
+        <div class="step-label">企業・受講生<br>希望日程収集</div>
+      </div>
+      <div class="step-line completed"></div>
+      <div class="workflow-step active">
+        <div class="step-circle">2</div>
+        <div class="step-label">講師への<br>候補日程提示</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="workflow-step">
+        <div class="step-circle">3</div>
+        <div class="step-label">可否回答<br>収集</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="workflow-step">
+        <div class="step-circle">4</div>
+        <div class="step-label">企業・受講生<br>最終確認</div>
+      </div>
+      <div class="step-line"></div>
+      <div class="workflow-step">
+        <div class="step-circle">5</div>
+        <div class="step-label">日程確定<br>通知</div>
+      </div>
+    </div>
+
+    <!-- 参加者の可否状況 -->
+    <div class="participants-section">
+      <div class="section-title">参加者の可否状況</div>
+      <div class="participants-grid">
+        <div class="participant-group instructor">
+          <div class="participant-header">
+            <div class="participant-title">講師</div>
+            <div class="participant-count">1名</div>
+          </div>
+          <ul class="participant-list">
+            <li class="participant-item">
+              <div>
+                <div class="participant-name">Jeremy McCarver</div>
+                <div class="participant-role">英語講師</div>
+              </div>
+              <div class="participant-availability available">対応可能</div>
+            </li>
+          </ul>
+        </div>
+        <div class="participant-group company">
+          <div class="participant-header">
+            <div class="participant-title">企業担当者</div>
+            <div class="participant-count">2名</div>
+          </div>
+          <ul class="participant-list">
+            <li class="participant-item">
+              <div>
+                <div class="participant-name">田中 太郎</div>
+                <div class="participant-role">人事部長</div>
+              </div>
+              <div class="participant-availability available">回答済み</div>
+            </li>
+            <li class="participant-item">
+              <div>
+                <div class="participant-name">佐藤 花子</div>
+                <div class="participant-role">研修担当</div>
+              </div>
+              <div class="participant-availability pending">回答待ち</div>
+            </li>
+          </ul>
+        </div>
+        <div class="participant-group student">
+          <div class="participant-header">
+            <div class="participant-title">受講生</div>
+            <div class="participant-count">8名</div>
+          </div>
+          <ul class="participant-list">
+            <li class="participant-item">
+              <div>
+                <div class="participant-name">津留 春美</div>
+                <div class="participant-role">営業部</div>
+              </div>
+              <div class="participant-availability available">回答済み</div>
+            </li>
+            <li class="participant-item">
+              <div>
+                <div class="participant-name">田中太 芳樹</div>
+                <div class="participant-role">技術部</div>
+              </div>
+              <div class="participant-availability available">回答済み</div>
+            </li>
+            <li class="participant-item">
+              <div>
+                <div class="participant-name">中尾 美咲</div>
+                <div class="participant-role">経理部</div>
+              </div>
+              <div class="participant-availability pending">回答待ち</div>
+            </li>
+            <li class="participant-item">
+              <div>
+                <div class="participant-name">他5名</div>
+                <div class="participant-role">各部署</div>
+              </div>
+              <div class="participant-availability available">回答済み</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- コンテンツグリッド -->
+    <div class="content-grid">
+      <!-- レッスン一覧 -->
+      <div class="lesson-schedule">
+        <div class="schedule-header">
+          <div class="schedule-title">レッスン一覧</div>
+          <div class="schedule-actions">
+            <button class="btn-secondary">フィルター</button>
+            <button class="btn-secondary">並び替え</button>
+          </div>
+        </div>
+        <div class="lesson-list">
+          <div class="lesson-item confirmed">
+            <div class="lesson-header">
+              <div class="lesson-title">第1回レッスン</div>
+              <span class="status-badge status-confirmed">確定済み</span>
+            </div>
+            <div class="lesson-details">
+              日時: 2025/07/01 (火) 17:30-19:00<br>
+              場所: オンライン (Zoom)<br>
+              確定日: 2025/06/25
+            </div>
+            <div class="lesson-actions">
+              <button class="action-btn">詳細</button>
+              <button class="action-btn">変更</button>
+              <button class="action-btn">通知</button>
+            </div>
+          </div>
+
+          <div class="lesson-item confirmed">
+            <div class="lesson-header">
+              <div class="lesson-title">第2回レッスン</div>
+              <span class="status-badge status-confirmed">確定済み</span>
+            </div>
+            <div class="lesson-details">
+              日時: 2025/07/08 (火) 17:30-19:00<br>
+              場所: オンライン (Zoom)<br>
+              確定日: 2025/07/01
+            </div>
+            <div class="lesson-actions">
+              <button class="action-btn">詳細</button>
+              <button class="action-btn">変更</button>
+              <button class="action-btn">通知</button>
+            </div>
+          </div>
+
+          <div class="lesson-item pending">
+            <div class="lesson-header">
+              <div class="lesson-title">第3回レッスン</div>
+              <span class="status-badge status-pending">調整中</span>
+            </div>
+            <div class="lesson-details">
+              候補日: 2025/07/15 (火) 17:30-19:00<br>
+              場所: オンライン (Zoom)<br>
+              回答期限: 2025/07/10
+            </div>
+            <div class="lesson-actions">
+              <button class="action-btn">詳細</button>
+              <button class="action-btn">催促</button>
+              <button class="action-btn">変更</button>
+            </div>
+          </div>
+
+          <div class="lesson-item rejected">
+            <div class="lesson-header">
+              <div class="lesson-title">第4回レッスン</div>
+              <span class="status-badge status-rejected">却下</span>
+            </div>
+            <div class="lesson-details">
+              却下日: 2025/07/22 (火) 17:30-19:00<br>
+              却下理由: 講師の都合により不可<br>
+              却下日: 2025/07/03
+            </div>
+            <div class="lesson-actions">
+              <button class="action-btn">再調整</button>
+              <button class="action-btn">詳細</button>
+            </div>
+          </div>
+
+          <div class="lesson-item tentative">
+            <div class="lesson-header">
+              <div class="lesson-title">第5回レッスン</div>
+              <span class="status-badge status-tentative">仮予約</span>
+            </div>
+            <div class="lesson-details">
+              仮予約日: 2025/07/29 (火) 17:30-19:00<br>
+              場所: オンライン (Zoom)<br>
+              確定期限: 2025/07/15
+            </div>
+            <div class="lesson-actions">
+              <button class="action-btn">確定</button>
+              <button class="action-btn">変更</button>
+              <button class="action-btn">詳細</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 候補日程 -->
+      <div class="section">
+        <div class="section-title">第3回レッスン - 候補日程</div>
+        <div class="candidate-dates">
+          <div class="candidate-item selected">
+            <div class="candidate-info">
+              <div class="candidate-date">2025/07/15 (火)</div>
+              <div class="candidate-time">17:30-19:00</div>
+              <div class="candidate-status available">講師・受講生 共に対応可能</div>
+            </div>
+            <div class="candidate-actions">
+              <button class="btn-success">確定</button>
+              <button class="btn-secondary">詳細</button>
+            </div>
+          </div>
+
+          <div class="candidate-item available">
+            <div class="candidate-info">
+              <div class="candidate-date">2025/07/16 (水)</div>
+              <div class="candidate-time">17:30-19:00</div>
+              <div class="candidate-status available">講師対応可能、受講生回答待ち</div>
+            </div>
+            <div class="candidate-actions">
+              <button class="btn-warning">仮予約</button>
+              <button class="btn-secondary">詳細</button>
+            </div>
+          </div>
+
+          <div class="candidate-item unavailable">
+            <div class="candidate-info">
+              <div class="candidate-date">2025/07/17 (木)</div>
+              <div class="candidate-time">17:30-19:00</div>
+              <div class="candidate-status unavailable">講師都合により不可</div>
+            </div>
+            <div class="candidate-actions">
+              <button class="btn-secondary" disabled>不可</button>
+              <button class="btn-secondary">詳細</button>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 1rem;">
+          <button class="btn-secondary">新しい候補日を追加</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- コミュニケーション履歴 -->
+    <div class="communication-section">
+      <div class="communication-header">
+        <div class="section-title">コミュニケーション履歴</div>
+        <button class="btn-secondary">全て表示</button>
+      </div>
+      <div class="communication-feed">
+        <div class="communication-item">
+          <div class="communication-avatar">JM</div>
+          <div class="communication-content">
+            <div class="communication-meta">
+              <div class="communication-author">Jeremy McCarver (講師)</div>
+              <div class="communication-time">2025/07/04 10:30</div>
+            </div>
+            <div class="communication-message">
+              7/15の日程について確認です。17:30-19:00で問題ありません。Zoomリンクを事前に送付いただけますでしょうか。
+            </div>
+            <div class="communication-actions">
+              <button class="action-btn">返信</button>
+              <button class="action-btn">転送</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="communication-item">
+          <div class="communication-avatar">田</div>
+          <div class="communication-content">
+            <div class="communication-meta">
+              <div class="communication-author">田中 太郎 (企業担当)</div>
+              <div class="communication-time">2025/07/03 15:45</div>
+            </div>
+            <div class="communication-message">
+              第3回レッスンの候補日程を確認しました。7/15(火)17:30-19:00で問題ありません。受講生の皆さんにも確認を取っております。
+            </div>
+            <div class="communication-actions">
+              <button class="action-btn">返信</button>
+              <button class="action-btn">転送</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="communication-item">
+          <div class="communication-avatar">G</div>
+          <div class="communication-content">
+            <div class="communication-meta">
+              <div class="communication-author">GOSAPO運営 (システム)</div>
+              <div class="communication-time">2025/07/02 16:00</div>
+            </div>
+            <div class="communication-message">
+              第3回レッスンの候補日程を送信しました。回答期限は7/10までとなっております。
+            </div>
+            <div class="communication-actions">
+              <button class="action-btn">詳細</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-response">
+        <textarea placeholder="メッセージを入力してください..."></textarea>
+        <div class="quick-response-actions">
+          <button class="btn-secondary">下書き保存</button>
+          <button class="btn-primary">送信</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 一括操作 -->
+    <div class="bulk-actions">
+      <div class="bulk-actions-header">一括操作</div>
+      <div class="bulk-actions-grid">
+        <div class="bulk-action-item">
+          <input type="checkbox" id="bulk-remind">
+          <label for="bulk-remind">未回答者にリマインド送信</label>
+        </div>
+        <div class="bulk-action-item">
+          <input type="checkbox" id="bulk-calendar">
+          <label for="bulk-calendar">確定日程をカレンダーに追加</label>
+        </div>
+        <div class="bulk-action-item">
+          <input type="checkbox" id="bulk-zoom">
+          <label for="bulk-zoom">Zoom会議室を自動作成</label>
+        </div>
+        <div class="bulk-action-item">
+          <input type="checkbox" id="bulk-notify">
+          <label for="bulk-notify">確定通知を参加者に送信</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- まとめアクション -->
+    <div class="summary-actions">
+      <button class="btn-secondary">下書き保存</button>
+      <button class="btn-warning">一括リマインド</button>
+      <button class="btn-success">確定日程を一括通知</button>
+      <button class="btn-primary">プロジェクト完了</button>
+    </div>
+  </div>
+</body>
+</html>

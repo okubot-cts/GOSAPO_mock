@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 日程調整・スケジュール</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; color: #28a745; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #e8f5e8; font-weight: bold; color: #28a745; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; }
+    .page-subtitle { color: #666; font-size: 1rem; margin-top: 0.3rem; }
+    .btn-primary { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #218838; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-warning:hover { background: #e0a800; }
+    .btn-danger { background: #dc3545; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-danger:hover { background: #c82333; }
+    .btn-info { background: #17a2b8; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-info:hover { background: #138496; }
+    .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+    .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .stats-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 1.8rem; font-weight: bold; color: #28a745; }
+    .stat-label { font-size: 0.9rem; color: #666; margin-top: 0.5rem; }
+    .filters { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; }
+    .filter-row { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center; flex-wrap: wrap; }
+    .filter-group { display: flex; flex-direction: column; min-width: 150px; }
+    .filter-group label { font-size: 0.9rem; margin-bottom: 0.3rem; font-weight: 600; }
+    .filter-group select, .filter-group input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+    .tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 2rem; }
+    .tab { padding: 0.75rem 1.5rem; cursor: pointer; border-bottom: 2px solid transparent; position: relative; }
+    .tab.active { border-bottom-color: #28a745; color: #28a745; font-weight: bold; }
+    .tab:hover { background: #f8f9fa; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    .notification-badge { background: #dc3545; color: #fff; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; position: absolute; top: -5px; right: 5px; }
+    .schedule-container { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+    .schedule-header { background: #f8f9fa; padding: 1rem; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+    .schedule-title { font-weight: bold; }
+    .schedule-actions { display: flex; gap: 0.5rem; }
+    .schedule-item { padding: 1.5rem; border-bottom: 1px solid #eee; transition: all 0.2s ease; cursor: pointer; }
+    .schedule-item:hover { background: #f8fff8; }
+    .schedule-item:last-child { border-bottom: none; }
+    .schedule-item.pending { border-left: 4px solid #ffc107; }
+    .schedule-item.confirmed { border-left: 4px solid #28a745; }
+    .schedule-item.negotiating { border-left: 4px solid #17a2b8; }
+    .schedule-item.declined { border-left: 4px solid #dc3545; background: #f8f9fa; opacity: 0.7; }
+    .item-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+    .item-main { flex: 1; }
+    .item-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 0.3rem; }
+    .item-subtitle { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+    .item-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+    .tag { background: #e8f5e8; color: #28a745; padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.8rem; }
+    .tag.status { background: #e3f2fd; color: #1976d2; }
+    .tag.urgent { background: #ffebee; color: #c62828; }
+    .item-meta { text-align: right; }
+    .schedule-date { font-size: 0.9rem; color: #28a745; font-weight: bold; margin-bottom: 0.5rem; }
+    .schedule-time { font-size: 0.8rem; color: #666; margin-bottom: 0.5rem; }
+    .status-badge { padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-confirmed { background: #d4edda; color: #155724; }
+    .status-negotiating { background: #d1ecf1; color: #0c5460; }
+    .status-declined { background: #f8d7da; color: #721c24; }
+    .item-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .detail-item { text-align: center; }
+    .detail-value { font-weight: bold; color: #28a745; }
+    .detail-label { font-size: 0.8rem; color: #666; }
+    .item-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+    .quick-schedule { background: #e8f5e8; border: 1px solid #c3e6cb; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; }
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .quick-action-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; cursor: pointer; transition: all 0.2s ease; }
+    .quick-action-card:hover { border-color: #28a745; background: #f8fff8; }
+    .quick-title { font-weight: bold; margin-bottom: 0.5rem; }
+    .quick-description { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+    .quick-button { width: 100%; }
+    .calendar-view { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .calendar-nav { display: flex; gap: 0.5rem; align-items: center; }
+    .calendar-nav button { background: #fff; border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    .calendar-nav button:hover { background: #f8f9fa; }
+    .calendar-grid { display: grid; grid-template-columns: 100px repeat(7, 1fr); gap: 1px; }
+    .calendar-time-slot { padding: 0.5rem; background: #f8f9fa; font-size: 0.8rem; display: flex; align-items: center; border-bottom: 1px solid #eee; }
+    .calendar-day-header { padding: 1rem 0.5rem; background: #f8f9fa; text-align: center; font-weight: bold; font-size: 0.9rem; border-bottom: 1px solid #e0e0e0; }
+    .calendar-cell { padding: 0.3rem; min-height: 50px; cursor: pointer; position: relative; border-bottom: 1px solid #eee; border-right: 1px solid #eee; }
+    .calendar-cell:hover { background: #f0f8f0; }
+    .calendar-cell.has-lesson { background: #e8f5e8; }
+    .calendar-cell.pending-lesson { background: #fff3cd; }
+    .calendar-cell.negotiating-lesson { background: #d1ecf1; }
+    .lesson-indicator { position: absolute; top: 2px; left: 2px; right: 2px; background: #28a745; color: #fff; padding: 0.2rem; border-radius: 3px; font-size: 0.7rem; text-align: center; }
+    .lesson-indicator.pending { background: #ffc107; color: #000; }
+    .lesson-indicator.negotiating { background: #17a2b8; }
+    .availability-panel { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; }
+    .availability-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; margin-top: 1rem; }
+    .availability-day { text-align: center; padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; }
+    .availability-day.available { background: #d4edda; color: #155724; }
+    .availability-day.busy { background: #f8d7da; color: #721c24; }
+    .availability-day.partial { background: #fff3cd; color: #856404; }
+    .empty-state { text-align: center; padding: 3rem; color: #666; }
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .coordination-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    .coordination-modal.visible { display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: #fff; border-radius: 8px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .modal-title { font-size: 1.2rem; font-weight: bold; }
+    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #666; }
+    .modal-section { margin-bottom: 1.5rem; }
+    .modal-section-title { font-weight: bold; margin-bottom: 0.5rem; color: #28a745; }
+    .datetime-input { display: flex; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .datetime-input input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
+    .comment-textarea { width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px; min-height: 80px; resize: vertical; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Instructor</div>
+    <div class="user-info">Jeremy McCarver | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>ダッシュボード</li>
+      <li onclick="window.location.href='instructor_offers_list.html'">オファー一覧</li>
+      <li>進行中プロジェクト</li>
+      <li class="active">日程調整</li>
+      <li>スケジュール</li>
+      <li>売上・報酬</li>
+      <li>プロフィール</li>
+      <li>メッセージ</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">日程調整・スケジュール管理</div>
+        <div class="page-subtitle">レッスンスケジュールの調整と可用性管理</div>
+      </div>
+      <div>
+        <button class="btn-secondary" onclick="window.location.href='instructor_offers_list.html'">← オファー一覧に戻る</button>
+        <button class="btn-secondary">可用性更新</button>
+        <button class="btn-primary">新規調整依頼</button>
+      </div>
+    </div>
+
+    <!-- 統計カード -->
+    <div class="stats-cards">
+      <div class="stat-card">
+        <div class="stat-number">5</div>
+        <div class="stat-label">調整待ち</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">12</div>
+        <div class="stat-label">確定済み</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">18</div>
+        <div class="stat-label">今月レッスン</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">85%</div>
+        <div class="stat-label">可用性</div>
+      </div>
+    </div>
+
+    <!-- クイックアクション -->
+    <div class="quick-schedule">
+      <h4>クイックアクション</h4>
+      <div class="quick-actions">
+        <div class="quick-action-card" onclick="openAvailabilityUpdate()">
+          <div class="quick-title">可用性を更新</div>
+          <div class="quick-description">来週〜来月の空き時間を設定</div>
+          <button class="btn-info quick-button">設定</button>
+        </div>
+        
+        <div class="quick-action-card" onclick="openBulkResponse()">
+          <div class="quick-title">一括回答</div>
+          <div class="quick-description">複数の調整依頼に一括で回答</div>
+          <button class="btn-warning quick-button">回答</button>
+        </div>
+        
+        <div class="quick-action-card" onclick="openScheduleTemplate()">
+          <div class="quick-title">定期パターン設定</div>
+          <div class="quick-description">週次・月次の定期スケジュール</div>
+          <button class="btn-success quick-button">設定</button>
+        </div>
+        
+        <div class="quick-action-card" onclick="exportSchedule()">
+          <div class="quick-title">スケジュール出力</div>
+          <div class="quick-description">カレンダーアプリ連携・PDF出力</div>
+          <button class="btn-secondary quick-button">出力</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- フィルター -->
+    <div class="filters">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>期間</label>
+          <select>
+            <option>全て</option>
+            <option>今週</option>
+            <option>今月</option>
+            <option>来月</option>
+            <option>未来3ヶ月</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>ステータス</label>
+          <select>
+            <option>全て</option>
+            <option>調整待ち</option>
+            <option>確定済み</option>
+            <option>交渉中</option>
+            <option>お断り</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>クライアント</label>
+          <select>
+            <option>全て</option>
+            <option>タツタ電線</option>
+            <option>ABC商事</option>
+            <option>XYZ製造</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>形態</label>
+          <select>
+            <option>全て</option>
+            <option>オンライン</option>
+            <option>対面</option>
+            <option>ハイブリッド</option>
+          </select>
+        </div>
+        <button class="btn-secondary">フィルター適用</button>
+      </div>
+    </div>
+
+    <!-- タブ -->
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('list')">
+        調整リスト (17)
+        <span class="notification-badge">5</span>
+      </div>
+      <div class="tab" onclick="showTab('calendar')">カレンダー表示</div>
+      <div class="tab" onclick="showTab('availability')">可用性管理</div>
+    </div>
+
+    <!-- 調整リストタブ -->
+    <div class="tab-content active" id="list-content">
+      <div class="schedule-container">
+        <div class="schedule-header">
+          <div class="schedule-title">日程調整リスト</div>
+          <div class="schedule-actions">
+            <button class="btn-secondary">並び替え</button>
+            <button class="btn-warning">一括対応</button>
+          </div>
+        </div>
+
+        <!-- 調整待ち案件 -->
+        <div class="schedule-item pending">
+          <div class="item-header">
+            <div class="item-main">
+              <div class="item-title">タツタ電線 英語研修</div>
+              <div class="item-subtitle">初期スケジュール調整</div>
+              <div class="item-tags">
+                <span class="tag">英語</span>
+                <span class="tag">製造業</span>
+                <span class="tag status">調整待ち</span>
+                <span class="tag urgent">期限3日</span>
+              </div>
+            </div>
+            <div class="item-meta">
+              <div class="schedule-date">希望: 毎週火曜</div>
+              <div class="schedule-time">17:30-19:00</div>
+              <span class="status-badge status-pending">回答待ち</span>
+            </div>
+          </div>
+          
+          <div class="item-details">
+            <div class="detail-item">
+              <div class="detail-value">40回</div>
+              <div class="detail-label">総回数</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">10ヶ月</div>
+              <div class="detail-label">期間</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">ハイブリッド</div>
+              <div class="detail-label">形態</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">¥320,000</div>
+              <div class="detail-label">総額</div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button class="btn-danger">お断り</button>
+            <button class="btn-warning">条件調整</button>
+            <button class="btn-success" onclick="openCoordinationModal('tatsuta')">詳細調整</button>
+          </div>
+        </div>
+
+        <!-- 交渉中案件 -->
+        <div class="schedule-item negotiating">
+          <div class="item-header">
+            <div class="item-main">
+              <div class="item-title">ABC商事 役員向け英語</div>
+              <div class="item-subtitle">時間帯調整中</div>
+              <div class="item-tags">
+                <span class="tag">英語</span>
+                <span class="tag">エグゼクティブ</span>
+                <span class="tag status">交渉中</span>
+              </div>
+            </div>
+            <div class="item-meta">
+              <div class="schedule-date">提案: 毎週水曜</div>
+              <div class="schedule-time">18:00-19:30</div>
+              <span class="status-badge status-negotiating">交渉中</span>
+            </div>
+          </div>
+          
+          <div class="item-details">
+            <div class="detail-item">
+              <div class="detail-value">20回</div>
+              <div class="detail-label">総回数</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">6ヶ月</div>
+              <div class="detail-label">期間</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">対面</div>
+              <div class="detail-label">形態</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">¥300,000</div>
+              <div class="detail-label">総額</div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button class="btn-secondary">履歴確認</button>
+            <button class="btn-warning" onclick="openCoordinationModal('abc')">再提案</button>
+            <button class="btn-success">合意</button>
+          </div>
+        </div>
+
+        <!-- 確定済み案件 -->
+        <div class="schedule-item confirmed">
+          <div class="item-header">
+            <div class="item-main">
+              <div class="item-title">XYZ製造 TOEIC対策</div>
+              <div class="item-subtitle">スケジュール確定済み</div>
+              <div class="item-tags">
+                <span class="tag">英語</span>
+                <span class="tag">TOEIC</span>
+                <span class="tag status">確定済み</span>
+              </div>
+            </div>
+            <div class="item-meta">
+              <div class="schedule-date">毎週木曜</div>
+              <div class="schedule-time">19:00-20:30</div>
+              <span class="status-badge status-confirmed">確定済み</span>
+            </div>
+          </div>
+          
+          <div class="item-details">
+            <div class="detail-item">
+              <div class="detail-value">15回</div>
+              <div class="detail-label">総回数</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">4ヶ月</div>
+              <div class="detail-label">期間</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">オンライン</div>
+              <div class="detail-label">形態</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">¥97,500</div>
+              <div class="detail-label">総額</div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button class="btn-secondary">詳細確認</button>
+            <button class="btn-info">カレンダー同期</button>
+            <button class="btn-warning">変更要求</button>
+          </div>
+        </div>
+
+        <!-- 調整待ち案件2 -->
+        <div class="schedule-item pending">
+          <div class="item-header">
+            <div class="item-main">
+              <div class="item-title">DEF企業 新人研修</div>
+              <div class="item-subtitle">代替日程検討中</div>
+              <div class="item-tags">
+                <span class="tag">英語</span>
+                <span class="tag">新人研修</span>
+                <span class="tag status">調整待ち</span>
+              </div>
+            </div>
+            <div class="item-meta">
+              <div class="schedule-date">希望: 隔週金曜</div>
+              <div class="schedule-time">16:00-17:30</div>
+              <span class="status-badge status-pending">回答待ち</span>
+            </div>
+          </div>
+          
+          <div class="item-details">
+            <div class="detail-item">
+              <div class="detail-value">25回</div>
+              <div class="detail-label">総回数</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">6ヶ月</div>
+              <div class="detail-label">期間</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">ハイブリッド</div>
+              <div class="detail-label">形態</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">¥175,000</div>
+              <div class="detail-label">総額</div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button class="btn-danger">お断り</button>
+            <button class="btn-warning">代替提案</button>
+            <button class="btn-success" onclick="openCoordinationModal('def')">詳細調整</button>
+          </div>
+        </div>
+
+        <!-- お断りした案件 -->
+        <div class="schedule-item declined">
+          <div class="item-header">
+            <div class="item-main">
+              <div class="item-title">GHI商事 土日集中英語</div>
+              <div class="item-subtitle">お断り済み</div>
+              <div class="item-tags">
+                <span class="tag">英語</span>
+                <span class="tag">土日開催</span>
+                <span class="tag status">お断り</span>
+              </div>
+            </div>
+            <div class="item-meta">
+              <div class="schedule-date">土日集中</div>
+              <div class="schedule-time">10:00-17:00</div>
+              <span class="status-badge status-declined">お断り</span>
+            </div>
+          </div>
+          
+          <div class="item-details">
+            <div class="detail-item">
+              <div class="detail-value">8回</div>
+              <div class="detail-label">総回数</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">2ヶ月</div>
+              <div class="detail-label">期間</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">対面</div>
+              <div class="detail-label">形態</div>
+            </div>
+            <div class="detail-item">
+              <div class="detail-value">¥96,000</div>
+              <div class="detail-label">総額</div>
+            </div>
+          </div>
+
+          <div class="item-actions">
+            <button class="btn-secondary">お断り理由確認</button>
+            <span style="font-size: 0.9rem; color: #666;">理由: 土日対応不可</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- カレンダータブ -->
+    <div class="tab-content" id="calendar-content">
+      <div class="calendar-view">
+        <div class="calendar-header">
+          <h3>2025年7月</h3>
+          <div class="calendar-nav">
+            <button>← 前月</button>
+            <button>今日</button>
+            <button>次月 →</button>
+          </div>
+        </div>
+        
+        <div class="calendar-grid">
+          <div class="calendar-time-slot">時間</div>
+          <div class="calendar-day-header">月</div>
+          <div class="calendar-day-header">火</div>
+          <div class="calendar-day-header">水</div>
+          <div class="calendar-day-header">木</div>
+          <div class="calendar-day-header">金</div>
+          <div class="calendar-day-header">土</div>
+          <div class="calendar-day-header">日</div>
+
+          <div class="calendar-time-slot">17:00-18:30</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell pending-lesson">
+            <div class="lesson-indicator pending">調整中</div>
+          </div>
+          <div class="calendar-cell has-lesson">
+            <div class="lesson-indicator">ABC商事</div>
+          </div>
+          <div class="calendar-cell has-lesson">
+            <div class="lesson-indicator">XYZ製造</div>
+          </div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time-slot">17:30-19:00</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell pending-lesson">
+            <div class="lesson-indicator pending">タツタ電線</div>
+          </div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time-slot">18:00-19:30</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell negotiating-lesson">
+            <div class="lesson-indicator negotiating">交渉中</div>
+          </div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+
+          <div class="calendar-time-slot">19:00-20:30</div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell has-lesson">
+            <div class="lesson-indicator">XYZ製造</div>
+          </div>
+          <div class="calendar-cell pending-lesson">
+            <div class="lesson-indicator pending">DEF企業</div>
+          </div>
+          <div class="calendar-cell"></div>
+          <div class="calendar-cell"></div>
+        </div>
+
+        <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+          <strong>🟢 緑:</strong> 確定済みレッスン | 
+          <strong>🟡 黄:</strong> 調整待ち | 
+          <strong>🔵 青:</strong> 交渉中 | 
+          クリックで詳細確認・編集
+        </div>
+      </div>
+    </div>
+
+    <!-- 可用性管理タブ -->
+    <div class="tab-content" id="availability-content">
+      <div class="availability-panel">
+        <h3>週間可用性設定</h3>
+        <p>各曜日・時間帯での対応可能状況を設定してください</p>
+        
+        <div class="availability-grid">
+          <div class="availability-day available">
+            <strong>月曜</strong><br>
+            17:00-20:00<br>
+            <small>対応可能</small>
+          </div>
+          <div class="availability-day available">
+            <strong>火曜</strong><br>
+            17:30-19:00<br>
+            <small>予約済み</small>
+          </div>
+          <div class="availability-day partial">
+            <strong>水曜</strong><br>
+            18:00-19:30<br>
+            <small>一部空き</small>
+          </div>
+          <div class="availability-day available">
+            <strong>木曜</strong><br>
+            19:00-20:30<br>
+            <small>予約済み</small>
+          </div>
+          <div class="availability-day busy">
+            <strong>金曜</strong><br>
+            16:00-20:00<br>
+            <small>他案件</small>
+          </div>
+          <div class="availability-day busy">
+            <strong>土曜</strong><br>
+            対応不可<br>
+            <small>休日</small>
+          </div>
+          <div class="availability-day busy">
+            <strong>日曜</strong><br>
+            対応不可<br>
+            <small>休日</small>
+          </div>
+        </div>
+
+        <div style="margin-top: 2rem;">
+          <h4>特別な日程・休暇設定</h4>
+          <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px;">
+            <div style="margin-bottom: 0.5rem;"><strong>2025/08/15 - 2025/08/20:</strong> 夏季休暇</div>
+            <div style="margin-bottom: 0.5rem;"><strong>2025/12/29 - 2026/01/05:</strong> 年末年始休暇</div>
+            <div style="margin-bottom: 0.5rem;"><strong>2025/11/23:</strong> 個人都合</div>
+          </div>
+          
+          <div style="margin-top: 1rem;">
+            <button class="btn-primary">可用性を更新</button>
+            <button class="btn-secondary">休暇を追加</button>
+            <button class="btn-info">定期パターン設定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 日程調整モーダル -->
+  <div class="coordination-modal" id="coordination-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">日程調整 - タツタ電線 英語研修</div>
+        <button class="close-btn" onclick="closeCoordinationModal()">&times;</button>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">希望スケジュール</div>
+        <p><strong>クライアント希望:</strong> 毎週火曜 17:30-19:00</p>
+        <p><strong>期間:</strong> 2025年7月〜2026年4月（40回）</p>
+        <p><strong>形態:</strong> オンライン・対面併用</p>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">あなたの回答</div>
+        <label>
+          <input type="radio" name="response" value="accept" checked> 
+          提示条件で承諾
+        </label><br>
+        <label>
+          <input type="radio" name="response" value="counter"> 
+          代替案を提示
+        </label><br>
+        <label>
+          <input type="radio" name="response" value="decline"> 
+          お断り
+        </label>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">代替日程提案（必要に応じて）</div>
+        <div class="datetime-input">
+          <input type="text" placeholder="曜日" value="水曜">
+          <input type="time" value="18:00">
+          <span>〜</span>
+          <input type="time" value="19:30">
+        </div>
+        <div class="datetime-input">
+          <input type="text" placeholder="曜日" value="木曜">
+          <input type="time" value="17:30">
+          <span>〜</span>
+          <input type="time" value="19:00">
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">コメント・備考</div>
+        <textarea class="comment-textarea" placeholder="日程に関するご要望、制約事項、その他のご相談など自由にご記入ください。
+
+例：
+- 火曜日での実施を承諾いたします
+- 月1回の対面レッスンは第3週火曜日を希望します
+- 年末年始期間（12/29-1/5）は休講を希望します"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-secondary" onclick="closeCoordinationModal()">キャンセル</button>
+        <button class="btn-warning">下書き保存</button>
+        <button class="btn-success" onclick="window.location.href='instructor_offers_list.html'">回答を送信</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tabName) {
+      // すべてのタブとコンテンツから active クラスを削除
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      // クリックされたタブと対応するコンテンツに active クラスを追加
+      event.currentTarget.classList.add('active');
+      document.getElementById(tabName + '-content').classList.add('active');
+    }
+
+    function openCoordinationModal(clientId) {
+      document.getElementById('coordination-modal').classList.add('visible');
+    }
+
+    function closeCoordinationModal() {
+      document.getElementById('coordination-modal').classList.remove('visible');
+    }
+
+    function openAvailabilityUpdate() {
+      alert('可用性更新画面を開きます');
+    }
+
+    function openBulkResponse() {
+      alert('一括回答画面を開きます');
+    }
+
+    function openScheduleTemplate() {
+      alert('定期パターン設定画面を開きます');
+    }
+
+    function exportSchedule() {
+      alert('スケジュール出力機能を実行します');
+    }
+
+    // モーダルの外側クリックで閉じる
+    document.getElementById('coordination-modal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        closeCoordinationModal();
+      }
+    });
+  </script>
+</body>
+</html>

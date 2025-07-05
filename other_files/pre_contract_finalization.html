@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 契約確定前最終調整</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; color: #007bff; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; color: #007bff; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; }
+    .page-subtitle { color: #666; font-size: 1rem; margin-top: 0.3rem; }
+    .btn-primary { background: #007bff; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-warning:hover { background: #e0a800; }
+    .btn-danger { background: #dc3545; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-danger:hover { background: #c82333; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; color: #007bff; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+    .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    .alert-danger { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    .workflow-final { display: flex; justify-content: space-between; margin-bottom: 2rem; }
+    .workflow-step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+    .workflow-step.completed .step-circle { background: #28a745; color: #fff; }
+    .workflow-step.active .step-circle { background: #007bff; color: #fff; }
+    .step-circle { width: 40px; height: 40px; border-radius: 50%; background: #e9ecef; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 0.5rem; }
+    .step-label { font-size: 0.8rem; text-align: center; }
+    .step-line { position: absolute; top: 20px; left: 50%; right: -50%; height: 2px; background: #e9ecef; z-index: -1; }
+    .step-line.completed { background: #28a745; }
+    .step-line.active { background: #007bff; }
+    .final-summary { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .summary-item { text-align: center; }
+    .summary-label { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; }
+    .summary-value { font-size: 1.1rem; font-weight: bold; color: #007bff; }
+    .approval-status { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .approval-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+    .approval-card { border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; }
+    .approval-card.approved { border-color: #28a745; background: #f8fff8; }
+    .approval-card.pending { border-color: #ffc107; background: #fffdf5; }
+    .approval-card.rejected { border-color: #dc3545; background: #fff5f5; }
+    .approval-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .approval-name { font-weight: bold; }
+    .approval-status-badge { padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.8rem; font-weight: bold; }
+    .status-approved { background: #d4edda; color: #155724; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .approval-details { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+    .approval-comment { font-size: 0.8rem; font-style: italic; color: #666; margin-bottom: 0.5rem; }
+    .approval-actions { display: flex; gap: 0.5rem; }
+    .contract-preview { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .contract-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .contract-section { margin-bottom: 1.5rem; }
+    .contract-label { font-weight: bold; margin-bottom: 0.5rem; color: #007bff; }
+    .contract-content { background: #f8f9fa; border-radius: 4px; padding: 1rem; font-size: 0.9rem; line-height: 1.5; }
+    .contract-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+    .contract-table th, .contract-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #eee; }
+    .contract-table th { background: #f8f9fa; font-weight: 600; width: 120px; }
+    .final-checklist { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .checklist-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+    .checklist-category { margin-bottom: 1rem; }
+    .checklist-header { font-weight: bold; margin-bottom: 0.5rem; color: #007bff; }
+    .checklist-items { list-style: none; padding: 0; margin: 0; }
+    .checklist-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0; }
+    .checklist-item input[type="checkbox"] { margin: 0; }
+    .checklist-item.completed { color: #28a745; }
+    .checklist-item.pending { color: #ffc107; }
+    .checklist-item.blocked { color: #dc3545; }
+    .risk-assessment { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .risk-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 0.5rem; }
+    .risk-info { flex: 1; }
+    .risk-title { font-weight: bold; margin-bottom: 0.2rem; }
+    .risk-description { font-size: 0.9rem; color: #666; }
+    .risk-level { padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.8rem; font-weight: bold; }
+    .risk-high { background: #f8d7da; color: #721c24; }
+    .risk-medium { background: #fff3cd; color: #856404; }
+    .risk-low { background: #d4edda; color: #155724; }
+    .next-steps { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .step-timeline { display: flex; flex-direction: column; gap: 1rem; }
+    .timeline-step { display: flex; gap: 1rem; padding: 1rem; border-left: 4px solid #e0e0e0; background: #f8f9fa; border-radius: 0 4px 4px 0; }
+    .timeline-step.immediate { border-left-color: #dc3545; }
+    .timeline-step.short-term { border-left-color: #ffc107; }
+    .timeline-step.planned { border-left-color: #007bff; }
+    .timeline-date { width: 100px; font-weight: bold; color: #007bff; }
+    .timeline-content { flex: 1; }
+    .timeline-title { font-weight: bold; margin-bottom: 0.3rem; }
+    .timeline-description { font-size: 0.9rem; color: #666; }
+    .action-panel { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-top: 2rem; }
+    .action-buttons { display: flex; justify-content: space-between; align-items: center; }
+    .action-left { display: flex; gap: 1rem; }
+    .action-right { display: flex; gap: 1rem; }
+    .progress-indicator { background: #28a745; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.9rem; }
+    .document-list { list-style: none; padding: 0; margin: 0; }
+    .document-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+    .document-item:last-child { border-bottom: none; }
+    .document-name { font-weight: 500; }
+    .document-status { font-size: 0.8rem; }
+    .document-actions { display: flex; gap: 0.5rem; }
+    .action-btn { background: none; border: none; color: #007bff; cursor: pointer; font-size: 0.8rem; text-decoration: underline; }
+    .action-btn:hover { color: #0056b3; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Management</div>
+    <div class="user-info">GOSAPO運営スタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li onclick="window.location.href='dashboard_mock.html'">ダッシュボード</li>
+      <li>新規オファー作成</li>
+      <li onclick="window.location.href='offer_management_mock.html'">オファー管理</li>
+      <li>講師マッチング</li>
+      <li onclick="window.location.href='schedule_coordination_mock.html'">日程調整</li>
+      <li class="active">契約確定前調整</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb" onclick="window.location.href='schedule_coordination_mock.html'">← 日程調整 / タツタ電線 2025年度英語研修</div>
+    
+    <div class="page-header">
+      <div>
+        <div class="page-title">契約確定前最終調整</div>
+        <div class="page-subtitle">全ての条件確定後、契約締結に向けた最終チェックと承認</div>
+      </div>
+      <div>
+        <button class="btn-secondary">修正要求</button>
+        <button class="btn-success">契約締結実行</button>
+      </div>
+    </div>
+
+    <!-- 最終ワークフロー -->
+    <div class="workflow-final">
+      <div class="workflow-step completed">
+        <div class="step-circle">✓</div>
+        <div class="step-label">オファー<br>作成完了</div>
+        <div class="step-line completed"></div>
+      </div>
+      <div class="workflow-step completed">
+        <div class="step-circle">✓</div>
+        <div class="step-label">講師<br>確定</div>
+        <div class="step-line completed"></div>
+      </div>
+      <div class="workflow-step completed">
+        <div class="step-circle">✓</div>
+        <div class="step-label">日程<br>調整完了</div>
+        <div class="step-line completed"></div>
+      </div>
+      <div class="workflow-step active">
+        <div class="step-circle">4</div>
+        <div class="step-label">最終確認<br>承認待ち</div>
+        <div class="step-line active"></div>
+      </div>
+      <div class="workflow-step">
+        <div class="step-circle">5</div>
+        <div class="step-label">契約<br>締結</div>
+      </div>
+    </div>
+
+    <!-- アラート -->
+    <div class="alert alert-warning">
+      <strong>承認待ち：</strong> 1件の承認が未完了です。全ての承認が完了すると契約締結を実行できます。
+    </div>
+
+    <!-- 最終サマリー -->
+    <div class="final-summary">
+      <h3>研修プロジェクト最終確認</h3>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">プロジェクト</div>
+          <div class="summary-value">タツタ電線 英語研修</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">期間</div>
+          <div class="summary-value">2025/07 - 2026/04</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">講師</div>
+          <div class="summary-value">Jeremy McCarver</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">総回数</div>
+          <div class="summary-value">40回</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">契約金額</div>
+          <div class="summary-value">¥530,000</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">開始予定</div>
+          <div class="summary-value">2025/07/08</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 承認状況 -->
+    <div class="approval-status">
+      <div class="section-title">承認状況</div>
+      <div class="approval-grid">
+        <div class="approval-card approved">
+          <div class="approval-header">
+            <div class="approval-name">クライアント企業</div>
+            <span class="approval-status-badge status-approved">承認済み</span>
+          </div>
+          <div class="approval-details">
+            承認者: 田中 太郎 (人事部長)<br>
+            承認日時: 2025/07/05 14:30
+          </div>
+          <div class="approval-comment">
+            "研修内容・日程ともに問題ありません。よろしくお願いいたします。"
+          </div>
+          <div class="approval-actions">
+            <button class="action-btn">詳細確認</button>
+          </div>
+        </div>
+
+        <div class="approval-card approved">
+          <div class="approval-header">
+            <div class="approval-name">講師</div>
+            <span class="approval-status-badge status-approved">承認済み</span>
+          </div>
+          <div class="approval-details">
+            承認者: Jeremy McCarver<br>
+            承認日時: 2025/07/04 16:45
+          </div>
+          <div class="approval-comment">
+            "日程・条件に同意します。製造業向けカリキュラムで進めます。"
+          </div>
+          <div class="approval-actions">
+            <button class="action-btn">詳細確認</button>
+          </div>
+        </div>
+
+        <div class="approval-card pending">
+          <div class="approval-header">
+            <div class="approval-name">GOSAPO内部承認</div>
+            <span class="approval-status-badge status-pending">承認待ち</span>
+          </div>
+          <div class="approval-details">
+            承認者: 営業部長<br>
+            依頼日時: 2025/07/05 15:00
+          </div>
+          <div class="approval-comment">
+            内部承認プロセス中...
+          </div>
+          <div class="approval-actions">
+            <button class="btn-warning">催促</button>
+            <button class="action-btn">詳細確認</button>
+          </div>
+        </div>
+
+        <div class="approval-card approved">
+          <div class="approval-header">
+            <div class="approval-name">法務確認</div>
+            <span class="approval-status-badge status-approved">確認済み</span>
+          </div>
+          <div class="approval-details">
+            確認者: 法務部<br>
+            確認日時: 2025/07/05 11:20
+          </div>
+          <div class="approval-comment">
+            "契約条項に問題なし。締結可能です。"
+          </div>
+          <div class="approval-actions">
+            <button class="action-btn">詳細確認</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 最終チェックリスト -->
+    <div class="final-checklist">
+      <div class="section-title">最終チェックリスト</div>
+      <div class="checklist-grid">
+        <div class="checklist-category">
+          <div class="checklist-header">契約・法務関連</div>
+          <ul class="checklist-items">
+            <li class="checklist-item completed">
+              <input type="checkbox" checked disabled>
+              <span>契約書内容の最終確認</span>
+            </li>
+            <li class="checklist-item completed">
+              <input type="checkbox" checked disabled>
+              <span>料金・支払い条件の確認</span>
+            </li>
+            <li class="checklist-item completed">
+              <input type="checkbox" checked disabled>
+              <span>キャンセル規定の確認</span>
+            </li>
+            <li class="checklist-item pending">
+              <input type="checkbox">
+              <span>最終承認の完了</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="checklist-category">
+          <div class="checklist-header">研修準備</div>
+          <ul class="checklist-items">
+            <li class="checklist-item completed">
+              <input type="checkbox" checked disabled>
+              <span>講師への詳細資料送付</span>
+            </li>
+            <li class="checklist-item completed">
+              <input type="checkbox" checked disabled>
+              <span>初回レッスン日程確定</span>
+            </li>
+            <li class="checklist-item completed">
+              <input type="checkbox" checked disabled>
+              <span>オンライン環境テスト完了</span>
+            </li>
+            <li class="checklist-item pending">
+              <input type="checkbox">
+              <span>受講生への開始案内送信</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="checklist-category">
+          <div class="checklist-header">システム・管理</div>
+          <ul class="checklist-items">
+            <li class="checklist-item completed">
+              <input type="checkbox" checked disabled>
+              <span>システムアカウント作成</span>
+            </li>
+            <li class="checklist-item completed">
+              <input type="checkbox" checked disabled>
+              <span>カレンダー同期設定</span>
+            </li>
+            <li class="checklist-item pending">
+              <input type="checkbox">
+              <span>請求管理設定完了</span>
+            </li>
+            <li class="checklist-item pending">
+              <input type="checkbox">
+              <span>進捗追跡システム設定</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 契約書プレビュー -->
+    <div class="contract-preview">
+      <div class="section-title">契約書プレビュー</div>
+      <div class="contract-sections">
+        <div>
+          <div class="contract-section">
+            <div class="contract-label">基本条項</div>
+            <div class="contract-content">
+              <table class="contract-table">
+                <tr><th>契約件名</th><td>英語研修業務委託契約</td></tr>
+                <tr><th>委託者</th><td>タツタ電線株式会社</td></tr>
+                <tr><th>受託者</th><td>株式会社GOSAPO</td></tr>
+                <tr><th>契約期間</th><td>2025年7月1日 - 2026年4月30日</td></tr>
+                <tr><th>研修回数</th><td>40回（週1回ペース）</td></tr>
+              </table>
+            </div>
+          </div>
+          
+          <div class="contract-section">
+            <div class="contract-label">料金・支払い条件</div>
+            <div class="contract-content">
+              <table class="contract-table">
+                <tr><th>基本料金</th><td>¥8,000 × 40回 = ¥320,000</td></tr>
+                <tr><th>管理費</th><td>¥160,000</td></tr>
+                <tr><th>その他経費</th><td>¥50,000</td></tr>
+                <tr><th>税込み総額</th><td>¥530,000</td></tr>
+                <tr><th>支払い条件</th><td>月末締め翌月末払い</td></tr>
+              </table>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <div class="contract-section">
+            <div class="contract-label">研修詳細</div>
+            <div class="contract-content">
+              <table class="contract-table">
+                <tr><th>言語</th><td>英語</td></tr>
+                <tr><th>レベル</th><td>初級〜中級</td></tr>
+                <tr><th>実施形態</th><td>オンライン・対面併用</td></tr>
+                <tr><th>1回時間</th><td>90分</td></tr>
+                <tr><th>担当講師</th><td>Jeremy McCarver</td></tr>
+                <tr><th>対象者数</th><td>8名</td></tr>
+              </table>
+            </div>
+          </div>
+          
+          <div class="contract-section">
+            <div class="contract-label">特記事項</div>
+            <div class="contract-content">
+              <ul style="margin: 0; padding-left: 1.5rem;">
+                <li>祝日の場合は振替実施</li>
+                <li>講師都合による休講時は代替講師またはオンライン振替</li>
+                <li>3営業日前までのキャンセルは無料</li>
+                <li>教材費は別途実費</li>
+                <li>進捗報告を月次で提出</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div style="text-align: center; margin-top: 1rem;">
+        <button class="btn-secondary">契約書ダウンロード</button>
+        <button class="btn-primary">契約書最終確認</button>
+      </div>
+    </div>
+
+    <!-- リスク評価 -->
+    <div class="risk-assessment">
+      <div class="section-title">リスク評価</div>
+      
+      <div class="risk-item">
+        <div class="risk-info">
+          <div class="risk-title">講師の急な体調不良・都合</div>
+          <div class="risk-description">代替講師の確保体制を構築済み</div>
+        </div>
+        <div class="risk-level risk-low">低</div>
+      </div>
+
+      <div class="risk-item">
+        <div class="risk-info">
+          <div class="risk-title">受講生の参加率低下</div>
+          <div class="risk-description">定期的なフォローアップとエンゲージメント向上施策</div>
+        </div>
+        <div class="risk-level risk-medium">中</div>
+      </div>
+
+      <div class="risk-item">
+        <div class="risk-info">
+          <div class="risk-title">オンライン環境トラブル</div>
+          <div class="risk-description">複数プラットフォーム対応とサポート体制</div>
+        </div>
+        <div class="risk-level risk-low">低</div>
+      </div>
+
+      <div class="risk-item">
+        <div class="risk-info">
+          <div class="risk-title">企業側都合による研修中止</div>
+          <div class="risk-description">契約上のキャンセル規定に準拠</div>
+        </div>
+        <div class="risk-level risk-medium">中</div>
+      </div>
+    </div>
+
+    <!-- 添付書類 -->
+    <div class="section">
+      <div class="section-title">添付書類・ドキュメント</div>
+      <ul class="document-list">
+        <li class="document-item">
+          <div class="document-name">研修業務委託契約書（最終版）</div>
+          <div class="document-status status-approved">確認済み</div>
+          <div class="document-actions">
+            <button class="action-btn">ダウンロード</button>
+            <button class="action-btn">プレビュー</button>
+          </div>
+        </li>
+        
+        <li class="document-item">
+          <div class="document-name">研修カリキュラム詳細</div>
+          <div class="document-status status-approved">確認済み</div>
+          <div class="document-actions">
+            <button class="action-btn">ダウンロード</button>
+            <button class="action-btn">プレビュー</button>
+          </div>
+        </li>
+        
+        <li class="document-item">
+          <div class="document-name">講師プロフィール・実績</div>
+          <div class="document-status status-approved">確認済み</div>
+          <div class="document-actions">
+            <button class="action-btn">ダウンロード</button>
+            <button class="action-btn">プレビュー</button>
+          </div>
+        </li>
+        
+        <li class="document-item">
+          <div class="document-name">日程表（40回分）</div>
+          <div class="document-status status-approved">確認済み</div>
+          <div class="document-actions">
+            <button class="action-btn">ダウンロード</button>
+            <button class="action-btn">プレビュー</button>
+          </div>
+        </li>
+        
+        <li class="document-item">
+          <div class="document-name">受講生向け案内書</div>
+          <div class="document-status status-pending">作成中</div>
+          <div class="document-actions">
+            <button class="action-btn">編集</button>
+            <button class="action-btn">プレビュー</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 次のステップ -->
+    <div class="next-steps">
+      <div class="section-title">次のステップ・アクション</div>
+      <div class="step-timeline">
+        <div class="timeline-step immediate">
+          <div class="timeline-date">即座に</div>
+          <div class="timeline-content">
+            <div class="timeline-title">内部承認の完了</div>
+            <div class="timeline-description">営業部長の最終承認を取得し、契約締結準備を完了</div>
+          </div>
+        </div>
+
+        <div class="timeline-step short-term">
+          <div class="timeline-date">1-2日後</div>
+          <div class="timeline-content">
+            <div class="timeline-title">契約締結・開始準備</div>
+            <div class="timeline-description">正式契約締結後、受講生向け案内送信と最終準備</div>
+          </div>
+        </div>
+
+        <div class="timeline-step planned">
+          <div class="timeline-date">7/8</div>
+          <div class="timeline-content">
+            <div class="timeline-title">研修開始</div>
+            <div class="timeline-description">第1回レッスン実施、以降定期的な進捗管理</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- アクションパネル -->
+    <div class="action-panel">
+      <div class="action-buttons">
+        <div class="action-left">
+          <button class="btn-secondary">全体レビュー</button>
+          <button class="btn-warning">修正要求</button>
+          <div class="progress-indicator">準備完了: 85%</div>
+        </div>
+        <div class="action-right">
+          <button class="btn-danger">プロジェクト中止</button>
+          <button class="btn-success">契約締結実行</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

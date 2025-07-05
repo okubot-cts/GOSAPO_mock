@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 新規オファー確認</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; color: #28a745; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #e8f5e8; font-weight: bold; color: #28a745; }
+    .main { margin-left: 200px; padding: 2rem 3vw; max-width: 1000px; }
+    .breadcrumb { color: #28a745; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .page-header { margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .page-subtitle { color: #666; font-size: 1rem; }
+    .btn-primary { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #218838; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-warning:hover { background: #e0a800; }
+    .btn-danger { background: #dc3545; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-danger:hover { background: #c82333; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; color: #28a745; border-left: 4px solid #28a745; padding-left: 0.5rem; }
+    .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+    .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .offer-header { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+    .offer-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .meta-item { text-align: center; }
+    .meta-label { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; }
+    .meta-value { font-size: 1.1rem; font-weight: bold; color: #28a745; }
+    .urgency-indicator { background: #dc3545; color: #fff; padding: 0.3rem 0.8rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; display: inline-block; margin-bottom: 1rem; }
+    .urgency-normal { background: #28a745; }
+    .urgency-high { background: #ffc107; color: #000; }
+    .urgency-urgent { background: #dc3545; }
+    .offer-details { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .detail-section { margin-bottom: 1.5rem; }
+    .detail-label { font-weight: bold; margin-bottom: 0.5rem; color: #28a745; }
+    .detail-table { width: 100%; border-collapse: collapse; }
+    .detail-table th, .detail-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #eee; }
+    .detail-table th { color: #666; width: 120px; background: #f8f9fa; font-weight: 600; }
+    .compensation-highlight { background: #e8f5e8; border: 2px solid #28a745; border-radius: 6px; padding: 1rem; text-align: center; }
+    .compensation-amount { font-size: 1.5rem; font-weight: bold; color: #28a745; }
+    .compensation-details { font-size: 0.9rem; color: #666; margin-top: 0.3rem; }
+    .requirements-section { background: #f8f9fa; border-radius: 6px; padding: 1rem; }
+    .requirement-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
+    .requirement-tag { background: #28a745; color: #fff; padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.8rem; }
+    .requirement-tag.optional { background: #6c757d; }
+    .client-info { background: #f8f9fa; border-radius: 6px; padding: 1rem; }
+    .response-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; }
+    .response-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .response-option { border: 2px solid #e0e0e0; border-radius: 8px; padding: 1rem; cursor: pointer; transition: all 0.2s ease; }
+    .response-option:hover { border-color: #28a745; background: #f8fff8; }
+    .response-option.selected { border-color: #28a745; background: #e8f5e8; }
+    .response-option.declined { border-color: #dc3545; background: #fff5f5; }
+    .option-icon { font-size: 2rem; text-align: center; margin-bottom: 0.5rem; }
+    .option-title { font-weight: bold; text-align: center; margin-bottom: 0.5rem; }
+    .option-description { font-size: 0.9rem; color: #666; text-align: center; }
+    .negotiation-section { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 1rem; margin-top: 1rem; display: none; }
+    .negotiation-section.visible { display: block; }
+    .negotiation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .negotiation-item { display: flex; flex-direction: column; }
+    .negotiation-label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .negotiation-input, .negotiation-select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+    .comment-section { margin-top: 1.5rem; }
+    .comment-textarea { width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px; min-height: 100px; resize: vertical; }
+    .availability-preview { background: #f8f9fa; border-radius: 6px; padding: 1rem; margin-top: 1rem; }
+    .availability-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.2rem; margin-top: 0.5rem; }
+    .availability-day { text-align: center; padding: 0.3rem; border-radius: 4px; font-size: 0.7rem; }
+    .day-header { font-weight: bold; background: #e9ecef; }
+    .day-available { background: #d4edda; color: #155724; cursor: pointer; }
+    .day-busy { background: #f8d7da; color: #721c24; }
+    .day-partial { background: #fff3cd; color: #856404; cursor: pointer; }
+    .similar-offers { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 1rem; }
+    .similar-offer-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0; }
+    .similar-offer-item:last-child { border-bottom: none; }
+    .similar-offer-info { flex: 1; }
+    .similar-offer-title { font-weight: 500; margin-bottom: 0.2rem; }
+    .similar-offer-details { font-size: 0.8rem; color: #666; }
+    .similar-offer-rate { font-weight: bold; color: #1976d2; }
+    .action-buttons { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e0e0e0; }
+    .action-left { display: flex; gap: 1rem; }
+    .action-right { display: flex; gap: 1rem; }
+    .deadline-warning { background: #dc3545; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.9rem; }
+    .earnings-calculator { background: #f8f9fa; border-radius: 6px; padding: 1rem; margin-top: 1rem; }
+    .earnings-item { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+    .earnings-label { color: #666; }
+    .earnings-value { font-weight: bold; }
+    .earnings-total { border-top: 2px solid #28a745; padding-top: 0.5rem; font-size: 1.1rem; }
+    .experience-match { background: #e8f5e8; border: 1px solid #c3e6cb; border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
+    .match-score { font-size: 1.2rem; font-weight: bold; color: #28a745; text-align: center; margin-bottom: 0.5rem; }
+    .match-reasons { list-style: none; padding: 0; margin: 0; }
+    .match-reason { padding: 0.2rem 0; font-size: 0.9rem; }
+    .match-reason::before { content: '✓ '; color: #28a745; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Instructor</div>
+    <div class="user-info">Jeremy McCarver | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>ダッシュボード</li>
+      <li class="active">新規オファー</li>
+      <li>進行中プロジェクト</li>
+      <li>スケジュール</li>
+      <li>売上・報酬</li>
+      <li>プロフィール</li>
+      <li>メッセージ</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">← ダッシュボード / 新規オファー</div>
+    
+    <div class="page-header">
+      <div class="page-title">新規研修オファー</div>
+      <div class="page-subtitle">タツタ電線株式会社 2025年度英語研修</div>
+    </div>
+
+    <!-- 緊急度・期限 -->
+    <div class="urgency-indicator urgency-high">回答期限: 2025年7月15日まで（あと7日）</div>
+
+    <!-- アラート -->
+    <div class="alert alert-info">
+      <strong>マッチング度：95%</strong> あなたの専門分野と経験にとても適した案件です。過去の類似案件での高評価実績があります。
+    </div>
+
+    <!-- オファー概要 -->
+    <div class="offer-header">
+      <div class="offer-meta">
+        <div class="meta-item">
+          <div class="meta-label">契約期間</div>
+          <div class="meta-value">10ヶ月</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">総回数</div>
+          <div class="meta-value">40回</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">頻度</div>
+          <div class="meta-value">週1回</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">1回時間</div>
+          <div class="meta-value">90分</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">報酬/回</div>
+          <div class="meta-value">¥8,000</div>
+        </div>
+        <div class="meta-item">
+          <div class="meta-label">想定総額</div>
+          <div class="meta-value">¥320,000</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 経験マッチング -->
+    <div class="experience-match">
+      <div class="match-score">マッチング度: 95%</div>
+      <ul class="match-reasons">
+        <li class="match-reason">製造業での指導経験（過去5社）</li>
+        <li class="match-reason">ビジネス英語専門（8年の実績）</li>
+        <li class="match-reason">初級〜中級レベル指導得意</li>
+        <li class="match-reason">オンライン・対面併用対応可能</li>
+        <li class="match-reason">関西圏での対面指導経験</li>
+      </ul>
+    </div>
+
+    <!-- オファー詳細 -->
+    <div class="offer-details">
+      <div class="details-grid">
+        <div>
+          <div class="detail-section">
+            <div class="detail-label">クライアント情報</div>
+            <div class="client-info">
+              <table class="detail-table">
+                <tr><th>企業名</th><td>タツタ電線株式会社</td></tr>
+                <tr><th>業界</th><td>電線・ケーブル製造業</td></tr>
+                <tr><th>所在地</th><td>大阪府東大阪市</td></tr>
+                <tr><th>企業規模</th><td>従業員数 約2,000名</td></tr>
+                <tr><th>上場</th><td>東証プライム市場</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-label">研修条件</div>
+            <table class="detail-table">
+              <tr><th>言語</th><td>英語</td></tr>
+              <tr><th>レベル</th><td>初級〜中級</td></tr>
+              <tr><th>参加者数</th><td>8名</td></tr>
+              <tr><th>実施形態</th><td>オンライン・対面併用</td></tr>
+              <tr><th>実施場所</th><td>大阪本社（対面時）</td></tr>
+              <tr><th>希望時間</th><td>17:30-19:00</td></tr>
+              <tr><th>希望曜日</th><td>火曜日</td></tr>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <div class="detail-section">
+            <div class="detail-label">報酬・条件</div>
+            <div class="compensation-highlight">
+              <div class="compensation-amount">¥8,000 / 回</div>
+              <div class="compensation-details">交通費別途支給 | 月末締め翌月末払い</div>
+            </div>
+            
+            <div class="earnings-calculator">
+              <h4>収益シミュレーション</h4>
+              <div class="earnings-item">
+                <span class="earnings-label">レッスン料（40回）</span>
+                <span class="earnings-value">¥320,000</span>
+              </div>
+              <div class="earnings-item">
+                <span class="earnings-label">交通費（概算）</span>
+                <span class="earnings-value">¥24,000</span>
+              </div>
+              <div class="earnings-item earnings-total">
+                <span class="earnings-label">想定総収入</span>
+                <span class="earnings-value">¥344,000</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-label">求められるスキル・経験</div>
+            <div class="requirements-section">
+              <div><strong>必須要件:</strong></div>
+              <div class="requirement-tags">
+                <span class="requirement-tag">ビジネス英語</span>
+                <span class="requirement-tag">初級者指導</span>
+                <span class="requirement-tag">グループレッスン</span>
+                <span class="requirement-tag">オンライン対応</span>
+              </div>
+              
+              <div style="margin-top: 1rem;"><strong>歓迎要件:</strong></div>
+              <div class="requirement-tags">
+                <span class="requirement-tag optional">製造業経験</span>
+                <span class="requirement-tag optional">TESOL資格</span>
+                <span class="requirement-tag optional">企業研修経験</span>
+                <span class="requirement-tag optional">関西弁理解</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 研修内容詳細 -->
+      <div class="detail-section">
+        <div class="detail-label">研修内容・目標</div>
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 4px;">
+          <p><strong>目標:</strong> 海外取引先との基本的なコミュニケーション能力向上</p>
+          <p><strong>重点分野:</strong></p>
+          <ul>
+            <li>製造業に特化したビジネス英語（技術用語含む）</li>
+            <li>メール・電話での基本的なやり取り</li>
+            <li>プレゼンテーション・会議での発言力向上</li>
+            <li>異文化コミュニケーション理解</li>
+          </ul>
+          <p><strong>特記事項:</strong> 電線・ケーブル業界の専門用語への対応が期待されます</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 類似案件参考 -->
+    <div class="similar-offers">
+      <div class="detail-label">類似案件での実績（参考）</div>
+      <div class="similar-offer-item">
+        <div class="similar-offer-info">
+          <div class="similar-offer-title">ABC製造 英語研修（2024年）</div>
+          <div class="similar-offer-details">製造業・30回・初中級 | 評価: ★★★★★</div>
+        </div>
+        <div class="similar-offer-rate">¥7,500/回</div>
+      </div>
+      <div class="similar-offer-item">
+        <div class="similar-offer-info">
+          <div class="similar-offer-title">XYZ工業 ビジネス英語（2023年）</div>
+          <div class="similar-offer-details">技術系・25回・中級 | 評価: ★★★★☆</div>
+        </div>
+        <div class="similar-offer-rate">¥8,500/回</div>
+      </div>
+    </div>
+
+    <!-- 可用性プレビュー -->
+    <div class="availability-preview">
+      <div class="detail-label">あなたの7月の空き状況（参考）</div>
+      <div class="availability-grid">
+        <div class="availability-day day-header">月</div>
+        <div class="availability-day day-header">火</div>
+        <div class="availability-day day-header">水</div>
+        <div class="availability-day day-header">木</div>
+        <div class="availability-day day-header">金</div>
+        <div class="availability-day day-header">土</div>
+        <div class="availability-day day-header">日</div>
+        
+        <div class="availability-day day-available">1</div>
+        <div class="availability-day day-available">2</div>
+        <div class="availability-day day-busy">3</div>
+        <div class="availability-day day-available">4</div>
+        <div class="availability-day day-available">5</div>
+        <div class="availability-day day-partial">6</div>
+        <div class="availability-day day-busy">7</div>
+        
+        <div class="availability-day day-available">8</div>
+        <div class="availability-day day-available" style="border: 2px solid #28a745;">9</div>
+        <div class="availability-day day-available">10</div>
+        <div class="availability-day day-available">11</div>
+        <div class="availability-day day-available">12</div>
+        <div class="availability-day day-partial">13</div>
+        <div class="availability-day day-busy">14</div>
+      </div>
+      <div style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">
+        💚 空き時間あり | 🟡 一部空き | 🔴 予約済み | 🟢 希望日程（火曜17:30-19:00）
+      </div>
+    </div>
+
+    <!-- 回答セクション -->
+    <div class="response-section">
+      <div class="section-title">オファーへの回答</div>
+      
+      <div class="response-options">
+        <div class="response-option" onclick="selectOption('accept')">
+          <div class="option-icon">✅</div>
+          <div class="option-title">承諾</div>
+          <div class="option-description">提示条件で引き受けます</div>
+        </div>
+        
+        <div class="response-option" onclick="selectOption('negotiate')">
+          <div class="option-icon">💬</div>
+          <div class="option-title">条件交渉</div>
+          <div class="option-description">一部条件の変更を希望</div>
+        </div>
+        
+        <div class="response-option" onclick="selectOption('decline')">
+          <div class="option-icon">❌</div>
+          <div class="option-title">お断り</div>
+          <div class="option-description">今回はお受けできません</div>
+        </div>
+      </div>
+
+      <!-- 条件交渉セクション -->
+      <div class="negotiation-section" id="negotiation-section">
+        <h4>条件変更のご希望</h4>
+        <div class="negotiation-grid">
+          <div class="negotiation-item">
+            <label class="negotiation-label">希望料金（1回あたり）</label>
+            <input type="number" class="negotiation-input" value="8000" placeholder="8000">
+          </div>
+          <div class="negotiation-item">
+            <label class="negotiation-label">希望曜日</label>
+            <select class="negotiation-select">
+              <option>火曜日（提案通り）</option>
+              <option>水曜日</option>
+              <option>木曜日</option>
+              <option>その他（コメント欄に記載）</option>
+            </select>
+          </div>
+          <div class="negotiation-item">
+            <label class="negotiation-label">希望時間</label>
+            <select class="negotiation-select">
+              <option>17:30-19:00（提案通り）</option>
+              <option>18:00-19:30</option>
+              <option>19:00-20:30</option>
+              <option>その他（コメント欄に記載）</option>
+            </select>
+          </div>
+          <div class="negotiation-item">
+            <label class="negotiation-label">実施形態</label>
+            <select class="negotiation-select">
+              <option>オンライン・対面併用（提案通り）</option>
+              <option>オンラインのみ</option>
+              <option>対面のみ</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- コメント欄 -->
+      <div class="comment-section">
+        <div class="detail-label">メッセージ・質問（任意）</div>
+        <textarea class="comment-textarea" placeholder="ご質問、条件に関するご相談、研修への意気込みなど、自由にご記入ください。
+
+例：
+- 製造業での指導経験を活かし、実践的な内容で進めたいと思います
+- 教材について事前に相談させていただけますでしょうか
+- 受講生のレベルについて詳しく教えてください"></textarea>
+      </div>
+    </div>
+
+    <!-- アクションボタン -->
+    <div class="action-buttons">
+      <div class="action-left">
+        <button class="btn-secondary">下書き保存</button>
+        <button class="btn-secondary">詳細資料請求</button>
+        <div class="deadline-warning">回答期限: 7日後</div>
+      </div>
+      <div class="action-right">
+        <button class="btn-danger">お断りする</button>
+        <button class="btn-warning">条件交渉で回答</button>
+        <button class="btn-success">承諾して回答送信</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function selectOption(option) {
+      // すべてのオプションから選択状態を解除
+      document.querySelectorAll('.response-option').forEach(el => {
+        el.classList.remove('selected', 'declined');
+      });
+      
+      // 選択されたオプションにスタイルを適用
+      event.currentTarget.classList.add(option === 'decline' ? 'declined' : 'selected');
+      
+      // 条件交渉セクションの表示制御
+      const negotiationSection = document.getElementById('negotiation-section');
+      if (option === 'negotiate') {
+        negotiationSection.classList.add('visible');
+      } else {
+        negotiationSection.classList.remove('visible');
+      }
+    }
+  </script>
+</body>
+</html>

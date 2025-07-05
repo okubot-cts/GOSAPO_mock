@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 初期スケジュール調整</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; color: #28a745; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #e8f5e8; font-weight: bold; color: #28a745; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #28a745; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .page-header { margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .page-subtitle { color: #666; font-size: 1rem; }
+    .btn-primary { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #218838; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-warning:hover { background: #e0a800; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; color: #28a745; border-left: 4px solid #28a745; padding-left: 0.5rem; }
+    .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+    .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .project-summary { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+    .summary-item { text-align: center; }
+    .summary-label { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; }
+    .summary-value { font-size: 1.1rem; font-weight: bold; color: #28a745; }
+    .schedule-preferences { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .preference-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+    .preference-section { margin-bottom: 1rem; }
+    .preference-label { font-weight: bold; margin-bottom: 0.5rem; color: #28a745; }
+    .preference-options { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .preference-option { display: flex; align-items: center; gap: 0.3rem; padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 4px; cursor: pointer; transition: all 0.2s ease; }
+    .preference-option:hover { background: #f8fff8; border-color: #28a745; }
+    .preference-option.selected { background: #e8f5e8; border-color: #28a745; }
+    .preference-option input[type="checkbox"], .preference-option input[type="radio"] { margin: 0; }
+    .availability-calendar { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+    .calendar-header { background: #f8f9fa; padding: 1rem; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+    .calendar-nav { display: flex; gap: 0.5rem; align-items: center; }
+    .calendar-nav button { background: #fff; border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    .calendar-nav button:hover { background: #f8f9fa; }
+    .calendar-grid { display: grid; grid-template-columns: 100px repeat(7, 1fr); }
+    .calendar-time-slot { padding: 0.5rem; border-bottom: 1px solid #eee; background: #f8f9fa; font-size: 0.8rem; display: flex; align-items: center; }
+    .calendar-day-header { padding: 1rem 0.5rem; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; text-align: center; font-weight: bold; font-size: 0.9rem; }
+    .calendar-cell { padding: 0.3rem; border-bottom: 1px solid #eee; border-right: 1px solid #eee; min-height: 40px; cursor: pointer; position: relative; }
+    .calendar-cell:hover { background: #f0f8f0; }
+    .calendar-cell.available { background: #d4edda; }
+    .calendar-cell.preferred { background: #28a745; color: #fff; }
+    .calendar-cell.unavailable { background: #f8d7da; }
+    .calendar-cell.existing { background: #ffc107; color: #000; }
+    .legend { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 0.3rem; font-size: 0.9rem; }
+    .legend-color { width: 16px; height: 16px; border-radius: 4px; }
+    .constraints-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .constraint-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 0.5rem; }
+    .constraint-info { flex: 1; }
+    .constraint-title { font-weight: bold; margin-bottom: 0.2rem; }
+    .constraint-description { font-size: 0.9rem; color: #666; }
+    .constraint-input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; width: 200px; }
+    .blackout-dates { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .date-range-input { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; }
+    .date-range-input input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; }
+    .blackout-list { list-style: none; padding: 0; margin: 0; max-height: 200px; overflow-y: auto; }
+    .blackout-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border-bottom: 1px solid #eee; }
+    .blackout-item:last-child { border-bottom: none; }
+    .blackout-reason { font-size: 0.8rem; color: #666; }
+    .remove-btn { background: #dc3545; color: #fff; border: none; padding: 0.2rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+    .remove-btn:hover { background: #c82333; }
+    .recurring-patterns { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    .pattern-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .pattern-card { border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; cursor: pointer; transition: all 0.2s ease; background: #fff; }
+    .pattern-card:hover { border-color: #28a745; }
+    .pattern-card.selected { border-color: #28a745; background: #e8f5e8; }
+    .pattern-title { font-weight: bold; margin-bottom: 0.5rem; }
+    .pattern-description { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+    .pattern-example { font-size: 0.8rem; color: #28a745; font-style: italic; }
+    .special-considerations { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .consideration-textarea { width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px; min-height: 100px; resize: vertical; }
+    .suggested-schedule { background: #e8f5e8; border: 1px solid #c3e6cb; border-radius: 8px; padding: 1rem; }
+    .schedule-preview { background: #f8f9fa; border-radius: 4px; padding: 1rem; margin-top: 1rem; }
+    .schedule-list { list-style: none; padding: 0; margin: 0; }
+    .schedule-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #e0e0e0; }
+    .schedule-item:last-child { border-bottom: none; }
+    .schedule-date { font-weight: bold; }
+    .schedule-time { color: #666; }
+    .schedule-status { padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.8rem; }
+    .status-suggested { background: #d1ecf1; color: #0c5460; }
+    .action-panel { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-top: 2rem; }
+    .action-buttons { display: flex; justify-content: space-between; align-items: center; }
+    .action-left { display: flex; gap: 1rem; }
+    .action-right { display: flex; gap: 1rem; }
+    .progress-indicator { background: #28a745; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Instructor</div>
+    <div class="user-info">Jeremy McCarver | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>ダッシュボード</li>
+      <li>新規オファー</li>
+      <li class="active">スケジュール調整</li>
+      <li>進行中プロジェクト</li>
+      <li>売上・報酬</li>
+      <li>プロフィール</li>
+      <li>メッセージ</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">← 新規オファー / タツタ電線 英語研修</div>
+    
+    <div class="page-header">
+      <div class="page-title">初期スケジュール調整</div>
+      <div class="page-subtitle">研修全体の大枠スケジュールに関するご希望をお聞かせください</div>
+    </div>
+
+    <!-- アラート -->
+    <div class="alert alert-success">
+      <strong>オファー承諾ありがとうございます！</strong> 次に、40回のレッスンを効率的に実施するための大枠スケジュールを調整いたします。
+    </div>
+
+    <!-- プロジェクト概要 -->
+    <div class="project-summary">
+      <h3>研修プロジェクト概要</h3>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">研修期間</div>
+          <div class="summary-value">10ヶ月</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">総レッスン数</div>
+          <div class="summary-value">40回</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">想定頻度</div>
+          <div class="summary-value">週1回</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">1回時間</div>
+          <div class="summary-value">90分</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">実施期間</div>
+          <div class="summary-value">7月〜4月</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- スケジュール希望 -->
+    <div class="schedule-preferences">
+      <div class="section-title">スケジュール希望設定</div>
+      <div class="preference-grid">
+        <div>
+          <div class="preference-section">
+            <div class="preference-label">希望曜日（複数選択可）</div>
+            <div class="preference-options">
+              <div class="preference-option">
+                <input type="checkbox" id="mon">
+                <label for="mon">月曜</label>
+              </div>
+              <div class="preference-option selected">
+                <input type="checkbox" id="tue" checked>
+                <label for="tue">火曜</label>
+              </div>
+              <div class="preference-option selected">
+                <input type="checkbox" id="wed" checked>
+                <label for="wed">水曜</label>
+              </div>
+              <div class="preference-option">
+                <input type="checkbox" id="thu">
+                <label for="thu">木曜</label>
+              </div>
+              <div class="preference-option">
+                <input type="checkbox" id="fri">
+                <label for="fri">金曜</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="preference-section">
+            <div class="preference-label">希望時間帯</div>
+            <div class="preference-options">
+              <div class="preference-option">
+                <input type="radio" name="time" id="morning">
+                <label for="morning">午前 (9:00-12:00)</label>
+              </div>
+              <div class="preference-option">
+                <input type="radio" name="time" id="afternoon">
+                <label for="afternoon">午後 (13:00-17:00)</label>
+              </div>
+              <div class="preference-option selected">
+                <input type="radio" name="time" id="evening" checked>
+                <label for="evening">夕方 (17:00-20:00)</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="preference-section">
+            <div class="preference-label">実施形態の希望</div>
+            <div class="preference-options">
+              <div class="preference-option">
+                <input type="radio" name="format" id="online-only">
+                <label for="online-only">オンラインのみ</label>
+              </div>
+              <div class="preference-option selected">
+                <input type="radio" name="format" id="hybrid" checked>
+                <label for="hybrid">オンライン・対面併用</label>
+              </div>
+              <div class="preference-option">
+                <input type="radio" name="format" id="onsite-only">
+                <label for="onsite-only">対面のみ</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="preference-section">
+            <div class="preference-label">対面レッスンの頻度（併用の場合）</div>
+            <div class="preference-options">
+              <div class="preference-option selected">
+                <input type="radio" name="onsite-freq" id="monthly" checked>
+                <label for="monthly">月1回程度</label>
+              </div>
+              <div class="preference-option">
+                <input type="radio" name="onsite-freq" id="bi-weekly">
+                <label for="bi-weekly">隔週</label>
+              </div>
+              <div class="preference-option">
+                <input type="radio" name="onsite-freq" id="flexible">
+                <label for="flexible">柔軟に調整</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 繰り返しパターン -->
+    <div class="recurring-patterns">
+      <div class="section-title">繰り返しパターンの希望</div>
+      <div class="pattern-grid">
+        <div class="pattern-card selected">
+          <div class="pattern-title">固定スケジュール</div>
+          <div class="pattern-description">毎週同じ曜日・時間で実施</div>
+          <div class="pattern-example">例：毎週火曜 17:30-19:00</div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-title">隔週2回ペース</div>
+          <div class="pattern-description">2週間に2回のペースで実施</div>
+          <div class="pattern-example">例：火・木 隔週で実施</div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-title">月集中型</div>
+          <div class="pattern-description">月の特定週に集中して実施</div>
+          <div class="pattern-example">例：月の第2・4週に集中</div>
+        </div>
+
+        <div class="pattern-card">
+          <div class="pattern-title">フレキシブル</div>
+          <div class="pattern-description">月ごとに都度調整</div>
+          <div class="pattern-example">例：毎月スケジュール相談</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 可用性カレンダー -->
+    <div class="availability-calendar">
+      <div class="calendar-header">
+        <div class="section-title">7月の可用性設定</div>
+        <div class="calendar-nav">
+          <button>← 前月</button>
+          <span><strong>2025年7月</strong></span>
+          <button>次月 →</button>
+        </div>
+      </div>
+      
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-color" style="background: #28a745;"></div>
+          <span>最優先希望</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #d4edda;"></div>
+          <span>対応可能</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #f8d7da;"></div>
+          <span>対応困難</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background: #ffc107;"></div>
+          <span>既存予約</span>
+        </div>
+      </div>
+      
+      <div class="calendar-grid">
+        <div class="calendar-time-slot">時間</div>
+        <div class="calendar-day-header">月</div>
+        <div class="calendar-day-header">火</div>
+        <div class="calendar-day-header">水</div>
+        <div class="calendar-day-header">木</div>
+        <div class="calendar-day-header">金</div>
+        <div class="calendar-day-header">土</div>
+        <div class="calendar-day-header">日</div>
+
+        <div class="calendar-time-slot">17:00-18:30</div>
+        <div class="calendar-cell unavailable"></div>
+        <div class="calendar-cell preferred"></div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell unavailable"></div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell unavailable"></div>
+
+        <div class="calendar-time-slot">17:30-19:00</div>
+        <div class="calendar-cell unavailable"></div>
+        <div class="calendar-cell preferred"></div>
+        <div class="calendar-cell preferred"></div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell unavailable"></div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell unavailable"></div>
+
+        <div class="calendar-time-slot">18:00-19:30</div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell unavailable"></div>
+        <div class="calendar-cell unavailable"></div>
+        <div class="calendar-cell unavailable"></div>
+
+        <div class="calendar-time-slot">19:00-20:30</div>
+        <div class="calendar-cell existing"></div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell existing"></div>
+        <div class="calendar-cell available"></div>
+        <div class="calendar-cell unavailable"></div>
+        <div class="calendar-cell unavailable"></div>
+        <div class="calendar-cell unavailable"></div>
+      </div>
+    </div>
+
+    <!-- 制約事項 -->
+    <div class="constraints-section">
+      <div class="section-title">制約事項・条件</div>
+      
+      <div class="constraint-item">
+        <div class="constraint-info">
+          <div class="constraint-title">1日の最大レッスン数</div>
+          <div class="constraint-description">同一日に実施可能な最大レッスン数</div>
+        </div>
+        <select class="constraint-input">
+          <option>1レッスン</option>
+          <option selected>2レッスン</option>
+          <option>3レッスン</option>
+          <option>制限なし</option>
+        </select>
+      </div>
+
+      <div class="constraint-item">
+        <div class="constraint-info">
+          <div class="constraint-title">連続レッスン間の最小間隔</div>
+          <div class="constraint-description">連続して実施する場合の休憩時間</div>
+        </div>
+        <select class="constraint-input">
+          <option>15分</option>
+          <option selected>30分</option>
+          <option>60分</option>
+          <option>制限なし</option>
+        </select>
+      </div>
+
+      <div class="constraint-item">
+        <div class="constraint-info">
+          <div class="constraint-title">大阪への移動可能日</div>
+          <div class="constraint-description">対面レッスン実施可能な曜日</div>
+        </div>
+        <select class="constraint-input">
+          <option>平日のみ</option>
+          <option selected>火・水・木</option>
+          <option>週末も可</option>
+          <option>要相談</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 休暇・不可日設定 -->
+    <div class="blackout-dates">
+      <div class="section-title">休暇・対応不可期間</div>
+      
+      <div class="date-range-input">
+        <input type="date" placeholder="開始日">
+        <span>〜</span>
+        <input type="date" placeholder="終了日">
+        <input type="text" placeholder="理由（任意）" style="flex: 1;">
+        <button class="btn-primary">追加</button>
+      </div>
+      
+      <ul class="blackout-list">
+        <li class="blackout-item">
+          <div>
+            <div><strong>2025/08/15 - 2025/08/20</strong></div>
+            <div class="blackout-reason">夏季休暇</div>
+          </div>
+          <button class="remove-btn">削除</button>
+        </li>
+        <li class="blackout-item">
+          <div>
+            <div><strong>2025/12/29 - 2026/01/05</strong></div>
+            <div class="blackout-reason">年末年始休暇</div>
+          </div>
+          <button class="remove-btn">削除</button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 特別な配慮 -->
+    <div class="special-considerations">
+      <div class="section-title">特別な配慮・リクエスト</div>
+      <textarea class="consideration-textarea" placeholder="スケジュール調整に関するご要望やご相談があれば、自由にご記入ください。
+
+例：
+- 3月は決算期のため、レッスン頻度を調整したい
+- 月の第1週は他の案件で忙しいため避けたい
+- オンラインと対面の比率について希望がある
+- 祝日の振替について希望がある
+- その他、柔軟に対応可能な点や制約事項"></textarea>
+    </div>
+
+    <!-- 提案スケジュール -->
+    <div class="suggested-schedule">
+      <div class="section-title">🤖 AI提案スケジュール</div>
+      <p>入力された希望に基づいて、最適なスケジュールを提案いたします：</p>
+      
+      <div class="schedule-preview">
+        <div><strong>推奨パターン：毎週火曜 17:30-19:00</strong></div>
+        <ul class="schedule-list">
+          <li class="schedule-item">
+            <div>
+              <div class="schedule-date">第1回：7月8日（火）</div>
+              <div class="schedule-time">17:30-19:00 オンライン</div>
+            </div>
+            <div class="schedule-status status-suggested">提案</div>
+          </li>
+          <li class="schedule-item">
+            <div>
+              <div class="schedule-date">第2回：7月15日（火）</div>
+              <div class="schedule-time">17:30-19:00 オンライン</div>
+            </div>
+            <div class="schedule-status status-suggested">提案</div>
+          </li>
+          <li class="schedule-item">
+            <div>
+              <div class="schedule-date">第3回：7月22日（火）</div>
+              <div class="schedule-time">17:30-19:00 対面</div>
+            </div>
+            <div class="schedule-status status-suggested">提案</div>
+          </li>
+          <li class="schedule-item">
+            <div>
+              <div class="schedule-date">第4回：7月29日（火）</div>
+              <div class="schedule-time">17:30-19:00 オンライン</div>
+            </div>
+            <div class="schedule-status status-suggested">提案</div>
+          </li>
+        </ul>
+        <div style="text-align: center; margin-top: 1rem;">
+          <button class="btn-secondary">全期間プレビュー</button>
+          <button class="btn-success">この提案を承認</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- アクションパネル -->
+    <div class="action-panel">
+      <div class="action-buttons">
+        <div class="action-left">
+          <button class="btn-secondary">下書き保存</button>
+          <button class="btn-secondary">代替案生成</button>
+          <div class="progress-indicator">設定完了度: 85%</div>
+        </div>
+        <div class="action-right">
+          <button class="btn-warning">要相談で送信</button>
+          <button class="btn-primary">希望を送信して次へ</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

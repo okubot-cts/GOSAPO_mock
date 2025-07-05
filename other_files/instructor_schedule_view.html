@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 講師用日程調整</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; color: #007bff; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #e8f4fd; font-weight: bold; color: #007bff; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .page-header { margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .page-subtitle { color: #666; font-size: 1rem; }
+    .btn-primary { background: #007bff; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-warning:hover { background: #e0a800; }
+    .btn-danger { background: #dc3545; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-danger:hover { background: #c82333; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; color: #007bff; }
+    .info-table { width: 100%; border-collapse: collapse; }
+    .info-table th, .info-table td { text-align: left; padding: 0.7rem; border-bottom: 1px solid #eee; }
+    .info-table th { color: #666; width: 140px; background: #f8f9fa; font-weight: 600; }
+    .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+    .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .schedule-requests { margin-bottom: 2rem; }
+    .request-item { border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; transition: all 0.2s ease; }
+    .request-item:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+    .request-item.urgent { border-left: 4px solid #dc3545; }
+    .request-item.normal { border-left: 4px solid #007bff; }
+    .request-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .request-title { font-weight: bold; font-size: 1.1rem; }
+    .request-deadline { font-size: 0.9rem; color: #dc3545; font-weight: bold; }
+    .request-details { margin-bottom: 1rem; }
+    .request-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .info-item { display: flex; flex-direction: column; }
+    .info-label { font-size: 0.8rem; color: #666; margin-bottom: 0.2rem; font-weight: 600; }
+    .info-value { font-weight: 500; }
+    .candidate-dates { margin-top: 1rem; }
+    .candidate-date { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 6px; margin-bottom: 0.5rem; }
+    .candidate-date.selected { background: #e3f2fd; border-color: #007bff; }
+    .candidate-info { flex: 1; }
+    .candidate-datetime { font-weight: bold; margin-bottom: 0.2rem; }
+    .candidate-duration { font-size: 0.9rem; color: #666; }
+    .candidate-actions { display: flex; gap: 0.5rem; }
+    .response-section { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+    .response-options { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .response-option { display: flex; align-items: center; gap: 0.5rem; }
+    .response-option input[type="radio"] { margin: 0; }
+    .comment-box { width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px; min-height: 80px; resize: vertical; }
+    .response-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem; }
+    .my-schedule { margin-bottom: 2rem; }
+    .calendar-widget { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .calendar-nav { display: flex; gap: 0.5rem; align-items: center; }
+    .calendar-nav button { background: #f8f9fa; border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    .calendar-nav button:hover { background: #e9ecef; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #ddd; border-radius: 4px; overflow: hidden; }
+    .calendar-day { background: #fff; padding: 0.5rem; min-height: 60px; font-size: 0.9rem; }
+    .calendar-day.header { background: #f8f9fa; font-weight: bold; text-align: center; padding: 0.7rem; min-height: auto; }
+    .calendar-day.other-month { background: #f8f9fa; color: #999; }
+    .calendar-day.today { background: #e3f2fd; }
+    .calendar-day.busy { background: #ffebee; }
+    .calendar-day.available { background: #e8f5e8; }
+    .lesson-indicator { font-size: 0.7rem; background: #007bff; color: #fff; padding: 0.2rem 0.4rem; border-radius: 8px; margin-top: 0.2rem; display: inline-block; }
+    .busy-indicator { font-size: 0.7rem; background: #dc3545; color: #fff; padding: 0.2rem 0.4rem; border-radius: 8px; margin-top: 0.2rem; display: inline-block; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 2rem; font-weight: bold; color: #007bff; }
+    .stat-label { font-size: 0.9rem; color: #666; margin-top: 0.5rem; }
+    .earning-info { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+    .earning-item { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+    .earning-label { color: #666; }
+    .earning-value { font-weight: bold; }
+    .communication-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .message-item { display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #eee; }
+    .message-item:last-child { border-bottom: none; }
+    .message-avatar { width: 40px; height: 40px; border-radius: 50%; background: #28a745; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+    .message-content { flex: 1; }
+    .message-header { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+    .message-author { font-weight: bold; }
+    .message-time { font-size: 0.8rem; color: #666; }
+    .message-text { font-size: 0.9rem; line-height: 1.4; }
+    .quick-reply { background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+    .quick-reply textarea { width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px; min-height: 80px; resize: vertical; }
+    .quick-reply-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Instructor</div>
+    <div class="user-info">Jeremy McCarver | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>ダッシュボード</li>
+      <li class="active">日程調整</li>
+      <li>レッスン予定</li>
+      <li>受講生管理</li>
+      <li>売上・報酬</li>
+      <li>プロフィール</li>
+      <li>メッセージ</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">← ダッシュボード</div>
+    
+    <div class="page-header">
+      <div class="page-title">日程調整リクエスト</div>
+      <div class="page-subtitle">新しい日程調整依頼を確認し、回答してください</div>
+    </div>
+
+    <!-- アラート -->
+    <div class="alert alert-warning">
+      <strong>回答期限が近づいています！</strong> 2件のリクエストの回答期限が48時間以内です。
+    </div>
+
+    <!-- 統計 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">3</div>
+        <div class="stat-label">未回答リクエスト</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">24</div>
+        <div class="stat-label">今月のレッスン</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">95%</div>
+        <div class="stat-label">回答率</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">¥320,000</div>
+        <div class="stat-label">今月の報酬予定</div>
+      </div>
+    </div>
+
+    <!-- 日程調整リクエスト -->
+    <div class="schedule-requests">
+      <h3>日程調整リクエスト</h3>
+      
+      <!-- 緊急リクエスト -->
+      <div class="request-item urgent">
+        <div class="request-header">
+          <div class="request-title">タツタ電線 2025年度英語研修 - 第3回レッスン</div>
+          <div class="request-deadline">回答期限: 7/10 (あと1日)</div>
+        </div>
+        <div class="request-details">
+          <div class="request-info">
+            <div class="info-item">
+              <div class="info-label">クライアント</div>
+              <div class="info-value">タツタ電線株式会社</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">レッスン形態</div>
+              <div class="info-value">オンライン (Zoom)</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">参加者数</div>
+              <div class="info-value">8名</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">報酬</div>
+              <div class="info-value">¥8,000 / 回</div>
+            </div>
+          </div>
+          
+          <div class="candidate-dates">
+            <h4>候補日程 (以下から選択してください)</h4>
+            <div class="candidate-date">
+              <div class="candidate-info">
+                <div class="candidate-datetime">2025年7月15日 (火) 17:30-19:00</div>
+                <div class="candidate-duration">1時間30分</div>
+              </div>
+              <div class="candidate-actions">
+                <button class="btn-success">対応可能</button>
+                <button class="btn-danger">不可</button>
+              </div>
+            </div>
+            <div class="candidate-date">
+              <div class="candidate-info">
+                <div class="candidate-datetime">2025年7月16日 (水) 17:30-19:00</div>
+                <div class="candidate-duration">1時間30分</div>
+              </div>
+              <div class="candidate-actions">
+                <button class="btn-success">対応可能</button>
+                <button class="btn-danger">不可</button>
+              </div>
+            </div>
+            <div class="candidate-date">
+              <div class="candidate-info">
+                <div class="candidate-datetime">2025年7月17日 (木) 17:30-19:00</div>
+                <div class="candidate-duration">1時間30分</div>
+              </div>
+              <div class="candidate-actions">
+                <button class="btn-success">対応可能</button>
+                <button class="btn-danger">不可</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="response-section">
+          <h4>回答・コメント</h4>
+          <div class="response-options">
+            <div class="response-option">
+              <input type="radio" id="accept1" name="response1" value="accept">
+              <label for="accept1">いずれかの日程で対応可能</label>
+            </div>
+            <div class="response-option">
+              <input type="radio" id="partial1" name="response1" value="partial">
+              <label for="partial1">一部の日程のみ対応可能</label>
+            </div>
+            <div class="response-option">
+              <input type="radio" id="decline1" name="response1" value="decline">
+              <label for="decline1">すべて対応不可</label>
+            </div>
+          </div>
+          <textarea class="comment-box" placeholder="コメントがあれば記入してください（代替案の提案など）"></textarea>
+          <div class="response-actions">
+            <button class="btn-secondary">下書き保存</button>
+            <button class="btn-primary">回答送信</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 通常リクエスト -->
+      <div class="request-item normal">
+        <div class="request-header">
+          <div class="request-title">ABC商事 役員向け英語研修 - 第4回レッスン</div>
+          <div class="request-deadline">回答期限: 7/15 (あと6日)</div>
+        </div>
+        <div class="request-details">
+          <div class="request-info">
+            <div class="info-item">
+              <div class="info-label">クライアント</div>
+              <div class="info-value">ABC商事株式会社</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">レッスン形態</div>
+              <div class="info-value">対面 (大阪本社)</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">参加者数</div>
+              <div class="info-value">3名 (役員レベル)</div>
+            </div>
+            <div class="info-item">
+              <div class="info-label">報酬</div>
+              <div class="info-value">¥15,000 / 回</div>
+            </div>
+          </div>
+          
+          <div class="candidate-dates">
+            <h4>候補日程</h4>
+            <div class="candidate-date">
+              <div class="candidate-info">
+                <div class="candidate-datetime">2025年7月22日 (火) 18:00-19:30</div>
+                <div class="candidate-duration">1時間30分</div>
+              </div>
+              <div class="candidate-actions">
+                <button class="btn-success">対応可能</button>
+                <button class="btn-danger">不可</button>
+              </div>
+            </div>
+            <div class="candidate-date">
+              <div class="candidate-info">
+                <div class="candidate-datetime">2025年7月24日 (木) 18:00-19:30</div>
+                <div class="candidate-duration">1時間30分</div>
+              </div>
+              <div class="candidate-actions">
+                <button class="btn-success">対応可能</button>
+                <button class="btn-danger">不可</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="response-section">
+          <h4>回答・コメント</h4>
+          <div class="response-options">
+            <div class="response-option">
+              <input type="radio" id="accept2" name="response2" value="accept">
+              <label for="accept2">いずれかの日程で対応可能</label>
+            </div>
+            <div class="response-option">
+              <input type="radio" id="partial2" name="response2" value="partial">
+              <label for="partial2">一部の日程のみ対応可能</label>
+            </div>
+            <div class="response-option">
+              <input type="radio" id="decline2" name="response2" value="decline">
+              <label for="decline2">すべて対応不可</label>
+            </div>
+          </div>
+          <textarea class="comment-box" placeholder="コメントがあれば記入してください"></textarea>
+          <div class="response-actions">
+            <button class="btn-secondary">下書き保存</button>
+            <button class="btn-primary">回答送信</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 今月のスケジュール -->
+    <div class="my-schedule">
+      <div class="section">
+        <div class="section-title">今月のスケジュール</div>
+        <div class="calendar-widget">
+          <div class="calendar-header">
+            <h4>2025年7月</h4>
+            <div class="calendar-nav">
+              <button>← 前月</button>
+              <button>今月</button>
+              <button>次月 →</button>
+            </div>
+          </div>
+          <div class="calendar-grid">
+            <div class="calendar-day header">日</div>
+            <div class="calendar-day header">月</div>
+            <div class="calendar-day header">火</div>
+            <div class="calendar-day header">水</div>
+            <div class="calendar-day header">木</div>
+            <div class="calendar-day header">金</div>
+            <div class="calendar-day header">土</div>
+            
+            <div class="calendar-day other-month">29</div>
+            <div class="calendar-day other-month">30</div>
+            <div class="calendar-day">1
+              <div class="lesson-indicator">レッスン</div>
+            </div>
+            <div class="calendar-day">2</div>
+            <div class="calendar-day">3</div>
+            <div class="calendar-day today">4</div>
+            <div class="calendar-day">5</div>
+            
+            <div class="calendar-day">6</div>
+            <div class="calendar-day">7</div>
+            <div class="calendar-day available">8
+              <div class="lesson-indicator">レッスン</div>
+            </div>
+            <div class="calendar-day">9</div>
+            <div class="calendar-day">10</div>
+            <div class="calendar-day">11</div>
+            <div class="calendar-day">12</div>
+            
+            <div class="calendar-day">13</div>
+            <div class="calendar-day">14</div>
+            <div class="calendar-day available">15
+              <div class="lesson-indicator">レッスン</div>
+            </div>
+            <div class="calendar-day">16</div>
+            <div class="calendar-day">17</div>
+            <div class="calendar-day busy">18
+              <div class="busy-indicator">不可</div>
+            </div>
+            <div class="calendar-day">19</div>
+            
+            <div class="calendar-day">20</div>
+            <div class="calendar-day">21</div>
+            <div class="calendar-day available">22
+              <div class="lesson-indicator">レッスン</div>
+            </div>
+            <div class="calendar-day">23</div>
+            <div class="calendar-day">24</div>
+            <div class="calendar-day">25</div>
+            <div class="calendar-day">26</div>
+            
+            <div class="calendar-day">27</div>
+            <div class="calendar-day">28</div>
+            <div class="calendar-day available">29
+              <div class="lesson-indicator">レッスン</div>
+            </div>
+            <div class="calendar-day">30</div>
+            <div class="calendar-day">31</div>
+            <div class="calendar-day other-month">1</div>
+            <div class="calendar-day other-month">2</div>
+          </div>
+        </div>
+        
+        <div class="earning-info">
+          <h4>今月の報酬予定</h4>
+          <div class="earning-item">
+            <span class="earning-label">確定レッスン</span>
+            <span class="earning-value">¥280,000</span>
+          </div>
+          <div class="earning-item">
+            <span class="earning-label">調整中レッスン</span>
+            <span class="earning-value">¥40,000</span>
+          </div>
+          <div class="earning-item">
+            <span class="earning-label">合計予定</span>
+            <span class="earning-value">¥320,000</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- メッセージ -->
+    <div class="communication-section">
+      <div class="section-title">最近のメッセージ</div>
+      <div class="message-item">
+        <div class="message-avatar">G</div>
+        <div class="message-content">
+          <div class="message-header">
+            <div class="message-author">GOSAPO運営チーム</div>
+            <div class="message-time">2時間前</div>
+          </div>
+          <div class="message-text">
+            タツタ電線様の第3回レッスンについて、日程調整のお願いです。回答期限は7/10となっておりますので、ご確認をお願いいたします。
+          </div>
+        </div>
+      </div>
+      <div class="message-item">
+        <div class="message-avatar">田</div>
+        <div class="message-content">
+          <div class="message-header">
+            <div class="message-author">田中様 (タツタ電線)</div>
+            <div class="message-time">1日前</div>
+          </div>
+          <div class="message-text">
+            いつもお世話になっております。次回のレッスンの教材について、事前に送付いただけますでしょうか。
+          </div>
+        </div>
+      </div>
+      
+      <div class="quick-reply">
+        <h4>クイック返信</h4>
+        <textarea placeholder="メッセージを入力してください..."></textarea>
+        <div class="quick-reply-actions">
+          <button class="btn-secondary">下書き保存</button>
+          <button class="btn-primary">送信</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

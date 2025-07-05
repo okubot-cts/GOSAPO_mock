@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 講師マッチング・打診</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; color: #007bff; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; color: #007bff; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; }
+    .page-subtitle { color: #666; font-size: 1rem; margin-top: 0.3rem; }
+    .btn-primary { background: #007bff; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-warning:hover { background: #e0a800; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; color: #007bff; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .offer-summary { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .summary-item { text-align: center; }
+    .summary-label { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; }
+    .summary-value { font-size: 1.1rem; font-weight: bold; color: #007bff; }
+    .matching-filters { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; }
+    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .filter-group { display: flex; flex-direction: column; }
+    .filter-label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .filter-select, .filter-input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+    .filter-buttons { display: flex; gap: 0.5rem; }
+    .instructor-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+    .instructor-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; transition: all 0.2s ease; position: relative; }
+    .instructor-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
+    .instructor-card.recommended { border: 2px solid #28a745; }
+    .instructor-card.selected { border: 2px solid #007bff; background: #f8f9ff; }
+    .match-score { position: absolute; top: 1rem; right: 1rem; background: #28a745; color: #fff; padding: 0.3rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+    .match-score.high { background: #28a745; }
+    .match-score.medium { background: #ffc107; color: #000; }
+    .match-score.low { background: #dc3545; }
+    .instructor-header { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .instructor-avatar { width: 60px; height: 60px; border-radius: 50%; background: #007bff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; }
+    .instructor-basic { flex: 1; }
+    .instructor-name { font-size: 1.1rem; font-weight: bold; margin-bottom: 0.3rem; }
+    .instructor-title { font-size: 0.9rem; color: #666; margin-bottom: 0.3rem; }
+    .instructor-rating { display: flex; align-items: center; gap: 0.3rem; }
+    .rating-stars { color: #ffc107; }
+    .rating-text { font-size: 0.8rem; color: #666; }
+    .instructor-details { margin-bottom: 1rem; }
+    .detail-row { display: flex; justify-content: space-between; margin-bottom: 0.3rem; font-size: 0.9rem; }
+    .detail-label { color: #666; }
+    .detail-value { font-weight: 500; }
+    .instructor-skills { margin-bottom: 1rem; }
+    .skill-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .skill-tag { background: #e3f2fd; color: #1976d2; padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.8rem; }
+    .availability-section { margin-bottom: 1rem; }
+    .availability-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.2rem; }
+    .availability-day { text-align: center; padding: 0.3rem; border-radius: 4px; font-size: 0.7rem; }
+    .availability-day.available { background: #d4edda; color: #155724; }
+    .availability-day.busy { background: #f8d7da; color: #721c24; }
+    .availability-day.partial { background: #fff3cd; color: #856404; }
+    .instructor-actions { display: flex; gap: 0.5rem; }
+    .action-btn { background: none; border: none; color: #007bff; cursor: pointer; font-size: 0.8rem; text-decoration: underline; }
+    .action-btn:hover { color: #0056b3; }
+    .offer-template { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; }
+    .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .template-section { margin-bottom: 1.5rem; }
+    .template-label { font-weight: 600; margin-bottom: 0.5rem; color: #007bff; }
+    .template-content { background: #f8f9fa; border-radius: 4px; padding: 1rem; font-size: 0.9rem; line-height: 1.5; }
+    .selected-instructors { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; }
+    .selected-list { list-style: none; padding: 0; margin: 0; }
+    .selected-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border-bottom: 1px solid #eee; }
+    .selected-item:last-child { border-bottom: none; }
+    .selected-info { flex: 1; }
+    .selected-name { font-weight: bold; margin-bottom: 0.2rem; }
+    .selected-details { font-size: 0.8rem; color: #666; }
+    .selected-actions { display: flex; gap: 0.5rem; }
+    .bulk-actions { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; }
+    .bulk-actions-header { font-weight: bold; margin-bottom: 1rem; color: #007bff; }
+    .bulk-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .bulk-option { display: flex; align-items: center; gap: 0.5rem; }
+    .bulk-option input[type="checkbox"] { margin: 0; }
+    .bulk-buttons { display: flex; gap: 0.5rem; }
+    .ai-suggestions { background: #e8f5e8; border: 1px solid #c3e6cb; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+    .ai-title { font-weight: bold; margin-bottom: 0.5rem; color: #155724; }
+    .ai-content { font-size: 0.9rem; line-height: 1.4; }
+    .ai-recommendations { list-style: none; padding: 0; margin: 0.5rem 0; }
+    .ai-recommendation { padding: 0.2rem 0; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Management</div>
+    <div class="user-info">GOSAPO運営スタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>ダッシュボード</li>
+      <li>新規オファー作成</li>
+      <li>オファー管理</li>
+      <li class="active">講師マッチング</li>
+      <li>日程調整</li>
+      <li>クライアント管理</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">← オファー管理 / タツタ電線 2025年度英語研修</div>
+    
+    <div class="page-header">
+      <div>
+        <div class="page-title">講師マッチング・打診</div>
+        <div class="page-subtitle">オファー条件に基づく講師選定と打診管理</div>
+      </div>
+      <div>
+        <button class="btn-secondary">条件変更</button>
+        <button class="btn-primary">一括打診</button>
+      </div>
+    </div>
+
+    <!-- オファー概要 -->
+    <div class="offer-summary">
+      <h3>オファー概要</h3>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">案件名</div>
+          <div class="summary-value">タツタ電線 2025年度英語研修</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">言語・レベル</div>
+          <div class="summary-value">英語・初級〜中級</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">実施形態</div>
+          <div class="summary-value">オンライン・対面併用</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">期間</div>
+          <div class="summary-value">2025/07〜2026/04</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">総レッスン数</div>
+          <div class="summary-value">40回</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">講師料/回</div>
+          <div class="summary-value">¥8,000</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI推奨 -->
+    <div class="ai-suggestions">
+      <div class="ai-title">🤖 AI マッチング推奨</div>
+      <div class="ai-content">
+        条件分析の結果、以下の講師が最適です：
+        <ul class="ai-recommendations">
+          <li>• Jeremy McCarver（マッチ度95%）- ビジネス英語専門、製造業経験豊富</li>
+          <li>• Matt Lowerson（マッチ度88%）- TESOL資格、オンライン指導実績多数</li>
+          <li>• Stephen Sumi（マッチ度82%）- 初級者指導得意、日本人向けカリキュラム</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- フィルター -->
+    <div class="matching-filters">
+      <h4>講師検索フィルター</h4>
+      <div class="filter-grid">
+        <div class="filter-group">
+          <label class="filter-label">経験年数</label>
+          <select class="filter-select">
+            <option>すべて</option>
+            <option>1年以上</option>
+            <option>3年以上</option>
+            <option>5年以上</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">評価</label>
+          <select class="filter-select">
+            <option>すべて</option>
+            <option>4.5以上</option>
+            <option>4.0以上</option>
+            <option>3.5以上</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">対応可能時間</label>
+          <select class="filter-select">
+            <option>すべて</option>
+            <option>平日夕方対応可</option>
+            <option>土日対応可</option>
+            <option>フレキシブル</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">料金範囲</label>
+          <select class="filter-select">
+            <option>すべて</option>
+            <option>〜¥5,000</option>
+            <option>¥5,000〜¥8,000</option>
+            <option>¥8,000〜¥12,000</option>
+          </select>
+        </div>
+      </div>
+      <div class="filter-buttons">
+        <button class="btn-primary">フィルター適用</button>
+        <button class="btn-secondary">リセット</button>
+      </div>
+    </div>
+
+    <!-- 選択済み講師 -->
+    <div class="selected-instructors">
+      <h4>選択済み講師 (2名)</h4>
+      <ul class="selected-list">
+        <li class="selected-item">
+          <div class="selected-info">
+            <div class="selected-name">Jeremy McCarver</div>
+            <div class="selected-details">マッチ度: 95% | 料金: ¥8,000/回 | 優先度: 高</div>
+          </div>
+          <div class="selected-actions">
+            <button class="btn-warning">編集</button>
+            <button class="btn-secondary">削除</button>
+          </div>
+        </li>
+        <li class="selected-item">
+          <div class="selected-info">
+            <div class="selected-name">Matt Lowerson</div>
+            <div class="selected-details">マッチ度: 88% | 料金: ¥7,500/回 | 優先度: 中</div>
+          </div>
+          <div class="selected-actions">
+            <button class="btn-warning">編集</button>
+            <button class="btn-secondary">削除</button>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 講師一覧 -->
+    <div class="section">
+      <div class="section-title">マッチング結果 (8名)</div>
+      <div class="instructor-grid">
+        <!-- 推奨講師1 -->
+        <div class="instructor-card recommended selected">
+          <div class="match-score high">95%</div>
+          <div class="instructor-header">
+            <div class="instructor-avatar">JM</div>
+            <div class="instructor-basic">
+              <div class="instructor-name">Jeremy McCarver</div>
+              <div class="instructor-title">英語講師 (ネイティブ)</div>
+              <div class="instructor-rating">
+                <span class="rating-stars">★★★★★</span>
+                <span class="rating-text">4.9 (127件)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="instructor-details">
+            <div class="detail-row">
+              <span class="detail-label">経験年数</span>
+              <span class="detail-value">8年</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">専門分野</span>
+              <span class="detail-value">ビジネス英語・製造業</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">希望料金</span>
+              <span class="detail-value">¥8,000/回</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">対応形態</span>
+              <span class="detail-value">オンライン・対面</span>
+            </div>
+          </div>
+
+          <div class="instructor-skills">
+            <div class="skill-tags">
+              <span class="skill-tag">TESOL</span>
+              <span class="skill-tag">ビジネス経験</span>
+              <span class="skill-tag">製造業知識</span>
+              <span class="skill-tag">初級者指導</span>
+            </div>
+          </div>
+
+          <div class="availability-section">
+            <div style="font-size: 0.8rem; margin-bottom: 0.3rem;">7月の空き状況</div>
+            <div class="availability-grid">
+              <div class="availability-day available">月</div>
+              <div class="availability-day available">火</div>
+              <div class="availability-day busy">水</div>
+              <div class="availability-day available">木</div>
+              <div class="availability-day available">金</div>
+              <div class="availability-day partial">土</div>
+              <div class="availability-day busy">日</div>
+            </div>
+          </div>
+
+          <div class="instructor-actions">
+            <button class="btn-success">✓ 選択済み</button>
+            <button class="action-btn">詳細プロフィール</button>
+            <button class="action-btn">過去実績</button>
+          </div>
+        </div>
+
+        <!-- 推奨講師2 -->
+        <div class="instructor-card recommended selected">
+          <div class="match-score medium">88%</div>
+          <div class="instructor-header">
+            <div class="instructor-avatar">ML</div>
+            <div class="instructor-basic">
+              <div class="instructor-name">Matt Lowerson</div>
+              <div class="instructor-title">英語講師 (ネイティブ)</div>
+              <div class="instructor-rating">
+                <span class="rating-stars">★★★★☆</span>
+                <span class="rating-text">4.7 (89件)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="instructor-details">
+            <div class="detail-row">
+              <span class="detail-label">経験年数</span>
+              <span class="detail-value">5年</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">専門分野</span>
+              <span class="detail-value">一般英語・TOEIC</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">希望料金</span>
+              <span class="detail-value">¥7,500/回</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">対応形態</span>
+              <span class="detail-value">オンライン中心</span>
+            </div>
+          </div>
+
+          <div class="instructor-skills">
+            <div class="skill-tags">
+              <span class="skill-tag">TEFL</span>
+              <span class="skill-tag">オンライン指導</span>
+              <span class="skill-tag">TOEIC対策</span>
+              <span class="skill-tag">グループレッスン</span>
+            </div>
+          </div>
+
+          <div class="availability-section">
+            <div style="font-size: 0.8rem; margin-bottom: 0.3rem;">7月の空き状況</div>
+            <div class="availability-grid">
+              <div class="availability-day available">月</div>
+              <div class="availability-day available">火</div>
+              <div class="availability-day available">水</div>
+              <div class="availability-day partial">木</div>
+              <div class="availability-day available">金</div>
+              <div class="availability-day busy">土</div>
+              <div class="availability-day busy">日</div>
+            </div>
+          </div>
+
+          <div class="instructor-actions">
+            <button class="btn-success">✓ 選択済み</button>
+            <button class="action-btn">詳細プロフィール</button>
+            <button class="action-btn">過去実績</button>
+          </div>
+        </div>
+
+        <!-- その他の講師 -->
+        <div class="instructor-card">
+          <div class="match-score medium">82%</div>
+          <div class="instructor-header">
+            <div class="instructor-avatar">SS</div>
+            <div class="instructor-basic">
+              <div class="instructor-name">Stephen Sumi</div>
+              <div class="instructor-title">英語講師 (バイリンガル)</div>
+              <div class="instructor-rating">
+                <span class="rating-stars">★★★★☆</span>
+                <span class="rating-text">4.6 (112件)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="instructor-details">
+            <div class="detail-row">
+              <span class="detail-label">経験年数</span>
+              <span class="detail-value">7年</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">専門分野</span>
+              <span class="detail-value">初級者指導・文法</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">希望料金</span>
+              <span class="detail-value">¥7,000/回</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">対応形態</span>
+              <span class="detail-value">オンライン・対面</span>
+            </div>
+          </div>
+
+          <div class="instructor-skills">
+            <div class="skill-tags">
+              <span class="skill-tag">日本語対応</span>
+              <span class="skill-tag">初級者専門</span>
+              <span class="skill-tag">文法指導</span>
+              <span class="skill-tag">企業研修</span>
+            </div>
+          </div>
+
+          <div class="availability-section">
+            <div style="font-size: 0.8rem; margin-bottom: 0.3rem;">7月の空き状況</div>
+            <div class="availability-grid">
+              <div class="availability-day available">月</div>
+              <div class="availability-day available">火</div>
+              <div class="availability-day available">水</div>
+              <div class="availability-day available">木</div>
+              <div class="availability-day partial">金</div>
+              <div class="availability-day available">土</div>
+              <div class="availability-day busy">日</div>
+            </div>
+          </div>
+
+          <div class="instructor-actions">
+            <button class="btn-primary">選択</button>
+            <button class="action-btn">詳細プロフィール</button>
+            <button class="action-btn">過去実績</button>
+          </div>
+        </div>
+
+        <div class="instructor-card">
+          <div class="match-score medium">78%</div>
+          <div class="instructor-header">
+            <div class="instructor-avatar">MY</div>
+            <div class="instructor-basic">
+              <div class="instructor-name">Michael Yuen</div>
+              <div class="instructor-title">英語講師 (ネイティブ)</div>
+              <div class="instructor-rating">
+                <span class="rating-stars">★★★★☆</span>
+                <span class="rating-text">4.4 (67件)</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="instructor-details">
+            <div class="detail-row">
+              <span class="detail-label">経験年数</span>
+              <span class="detail-value">4年</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">専門分野</span>
+              <span class="detail-value">会話・発音</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">希望料金</span>
+              <span class="detail-value">¥6,500/回</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">対応形態</span>
+              <span class="detail-value">オンライン</span>
+            </div>
+          </div>
+
+          <div class="instructor-skills">
+            <div class="skill-tags">
+              <span class="skill-tag">発音指導</span>
+              <span class="skill-tag">会話重視</span>
+              <span class="skill-tag">オンライン専門</span>
+            </div>
+          </div>
+
+          <div class="availability-section">
+            <div style="font-size: 0.8rem; margin-bottom: 0.3rem;">7月の空き状況</div>
+            <div class="availability-grid">
+              <div class="availability-day available">月</div>
+              <div class="availability-day available">火</div>
+              <div class="availability-day available">水</div>
+              <div class="availability-day available">木</div>
+              <div class="availability-day available">金</div>
+              <div class="availability-day busy">土</div>
+              <div class="availability-day busy">日</div>
+            </div>
+          </div>
+
+          <div class="instructor-actions">
+            <button class="btn-primary">選択</button>
+            <button class="action-btn">詳細プロフィール</button>
+            <button class="action-btn">過去実績</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 打診テンプレート -->
+    <div class="offer-template">
+      <div class="section-title">打診メッセージテンプレート</div>
+      <div class="template-grid">
+        <div>
+          <div class="template-section">
+            <div class="template-label">件名</div>
+            <div class="template-content">
+              【GOSAPO】新規研修案件のご提案 - タツタ電線株式会社様
+            </div>
+          </div>
+          
+          <div class="template-section">
+            <div class="template-label">本文（前半）</div>
+            <div class="template-content">
+              お疲れ様です。GOSAPO運営チームです。<br><br>
+              新しい研修案件についてご相談させていただきたく、ご連絡いたします。<br><br>
+              <strong>【案件概要】</strong><br>
+              ・企業名：タツタ電線株式会社<br>
+              ・研修内容：英語（初級〜中級）<br>
+              ・期間：2025年7月〜2026年4月<br>
+              ・回数：40回（週1回程度）<br>
+              ・形態：オンライン・対面併用
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <div class="template-section">
+            <div class="template-label">本文（後半）</div>
+            <div class="template-content">
+              <strong>【条件】</strong><br>
+              ・講師料：¥8,000/回<br>
+              ・対象者：8名程度<br>
+              ・実施場所：大阪（対面時）<br>
+              ・開始時期：2025年7月上旬予定<br><br>
+              
+              <strong>【回答期限】</strong><br>
+              2025年7月15日（火）まで<br><br>
+              
+              ご検討いただき、可能でしたら詳細打ち合わせの機会をいただけますでしょうか。<br>
+              ご質問等ございましたら、お気軽にお申し付けください。
+            </div>
+          </div>
+          
+          <div class="template-section">
+            <div class="template-label">添付資料</div>
+            <div class="template-content">
+              ・研修詳細資料<br>
+              ・想定カリキュラム<br>
+              ・契約条件書<br>
+              ・会社概要
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 一括操作 -->
+    <div class="bulk-actions">
+      <div class="bulk-actions-header">一括打診設定</div>
+      <div class="bulk-options">
+        <div class="bulk-option">
+          <input type="checkbox" id="auto-remind">
+          <label for="auto-remind">自動リマインダー設定</label>
+        </div>
+        <div class="bulk-option">
+          <input type="checkbox" id="priority-order">
+          <label for="priority-order">優先順位付け</label>
+        </div>
+        <div class="bulk-option">
+          <input type="checkbox" id="deadline-setting">
+          <label for="deadline-setting">回答期限自動設定</label>
+        </div>
+        <div class="bulk-option">
+          <input type="checkbox" id="follow-up">
+          <label for="follow-up">フォローアップ自動化</label>
+        </div>
+      </div>
+      <div class="bulk-buttons">
+        <button class="btn-secondary">プレビュー</button>
+        <button class="btn-primary">選択講師に一括打診送信</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

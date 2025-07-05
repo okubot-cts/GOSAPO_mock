@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 契約最終確認</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; color: #28a745; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #e8f5e8; font-weight: bold; color: #28a745; }
+    .main { margin-left: 200px; padding: 2rem 3vw; max-width: 1000px; }
+    .breadcrumb { color: #28a745; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .page-header { margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .page-subtitle { color: #666; font-size: 1rem; }
+    .btn-primary { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #218838; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-warning:hover { background: #e0a800; }
+    .btn-danger { background: #dc3545; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-danger:hover { background: #c82333; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; color: #28a745; border-left: 4px solid #28a745; padding-left: 0.5rem; }
+    .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+    .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    .contract-status { background: #28a745; color: #fff; padding: 1rem; border-radius: 8px; text-align: center; margin-bottom: 2rem; }
+    .status-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .status-description { font-size: 0.9rem; opacity: 0.9; }
+    .final-summary { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .summary-item { text-align: center; padding: 1rem; background: #fff; border-radius: 6px; border: 1px solid #e0e0e0; }
+    .summary-label { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; }
+    .summary-value { font-size: 1.1rem; font-weight: bold; color: #28a745; }
+    .contract-details { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .detail-section { margin-bottom: 1.5rem; }
+    .detail-label { font-weight: bold; margin-bottom: 0.5rem; color: #28a745; }
+    .detail-table { width: 100%; border-collapse: collapse; }
+    .detail-table th, .detail-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #eee; }
+    .detail-table th { color: #666; width: 120px; background: #f8f9fa; font-weight: 600; }
+    .earnings-breakdown { background: #e8f5e8; border: 1px solid #c3e6cb; border-radius: 6px; padding: 1rem; }
+    .earnings-item { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+    .earnings-label { color: #666; }
+    .earnings-value { font-weight: bold; color: #28a745; }
+    .earnings-total { border-top: 2px solid #28a745; padding-top: 0.5rem; font-size: 1.1rem; }
+    .schedule-summary { background: #f8f9fa; border-radius: 6px; padding: 1rem; }
+    .schedule-pattern { font-weight: bold; color: #28a745; margin-bottom: 0.5rem; }
+    .schedule-details { font-size: 0.9rem; color: #666; }
+    .schedule-list { list-style: none; padding: 0; margin: 0.5rem 0; }
+    .schedule-item { padding: 0.3rem 0; font-size: 0.9rem; }
+    .terms-conditions { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; max-height: 400px; overflow-y: auto; }
+    .terms-section { margin-bottom: 1.5rem; }
+    .terms-title { font-weight: bold; margin-bottom: 0.5rem; color: #28a745; }
+    .terms-content { font-size: 0.9rem; line-height: 1.5; }
+    .terms-list { margin: 0.5rem 0; padding-left: 1.5rem; }
+    .checkbox-agreement { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; }
+    .agreement-item { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 1rem; }
+    .agreement-item:last-child { margin-bottom: 0; }
+    .agreement-item input[type="checkbox"] { margin-top: 0.2rem; }
+    .agreement-text { font-size: 0.9rem; line-height: 1.4; }
+    .agreement-required { color: #dc3545; font-weight: bold; }
+    .signature-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .signature-info { background: #f8f9fa; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; }
+    .signature-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .signature-item { text-align: center; }
+    .signature-label { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; }
+    .signature-value { font-weight: bold; }
+    .digital-signature { border: 2px dashed #28a745; border-radius: 6px; padding: 2rem; text-align: center; background: #f8fff8; }
+    .signature-icon { font-size: 3rem; color: #28a745; margin-bottom: 1rem; }
+    .signature-text { color: #28a745; font-weight: bold; margin-bottom: 0.5rem; }
+    .signature-note { font-size: 0.8rem; color: #666; }
+    .next-steps { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 8px; padding: 1rem; }
+    .step-list { list-style: none; padding: 0; margin: 0; }
+    .step-item { display: flex; gap: 1rem; padding: 0.75rem 0; border-bottom: 1px solid #e0e0e0; }
+    .step-item:last-child { border-bottom: none; }
+    .step-number { width: 30px; height: 30px; border-radius: 50%; background: #1976d2; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; }
+    .step-content { flex: 1; }
+    .step-title { font-weight: bold; margin-bottom: 0.2rem; }
+    .step-description { font-size: 0.9rem; color: #666; }
+    .contact-support { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 1rem; text-align: center; }
+    .support-title { font-weight: bold; margin-bottom: 0.5rem; }
+    .support-details { font-size: 0.9rem; color: #666; }
+    .action-panel { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-top: 2rem; }
+    .action-buttons { display: flex; justify-content: space-between; align-items: center; }
+    .action-left { display: flex; gap: 1rem; }
+    .action-right { display: flex; gap: 1rem; }
+    .completion-indicator { background: #28a745; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.9rem; }
+    .document-list { list-style: none; padding: 0; margin: 0; }
+    .document-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+    .document-item:last-child { border-bottom: none; }
+    .document-name { font-weight: 500; }
+    .document-size { font-size: 0.8rem; color: #666; }
+    .download-btn { background: #17a2b8; color: #fff; border: none; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+    .download-btn:hover { background: #138496; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Instructor</div>
+    <div class="user-info">Jeremy McCarver | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>ダッシュボード</li>
+      <li>新規オファー</li>
+      <li>スケジュール調整</li>
+      <li class="active">契約確認</li>
+      <li>進行中プロジェクト</li>
+      <li>売上・報酬</li>
+      <li>プロフィール</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">← スケジュール調整 / タツタ電線 英語研修</div>
+    
+    <div class="page-header">
+      <div class="page-title">契約最終確認・電子署名</div>
+      <div class="page-subtitle">すべての条件が確定しました。契約内容をご確認の上、電子署名をお願いします</div>
+    </div>
+
+    <!-- 契約ステータス -->
+    <div class="contract-status">
+      <div class="status-title">✅ 契約準備完了</div>
+      <div class="status-description">オファー承諾・スケジュール調整が完了し、契約締結の準備が整いました</div>
+    </div>
+
+    <!-- アラート -->
+    <div class="alert alert-success">
+      <strong>おめでとうございます！</strong> タツタ電線株式会社との研修契約が最終段階に入りました。以下の契約内容をご確認ください。
+    </div>
+
+    <!-- 最終サマリー -->
+    <div class="final-summary">
+      <h3>契約最終サマリー</h3>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">契約期間</div>
+          <div class="summary-value">10ヶ月</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">総レッスン数</div>
+          <div class="summary-value">40回</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">基本パターン</div>
+          <div class="summary-value">毎週火曜</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">実施時間</div>
+          <div class="summary-value">17:30-19:00</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">報酬総額</div>
+          <div class="summary-value">¥320,000</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">開始予定</div>
+          <div class="summary-value">2025/07/08</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 契約詳細 -->
+    <div class="contract-details">
+      <div class="section-title">契約詳細</div>
+      <div class="details-grid">
+        <div>
+          <div class="detail-section">
+            <div class="detail-label">基本契約情報</div>
+            <table class="detail-table">
+              <tr><th>契約名</th><td>英語研修業務委託契約</td></tr>
+              <tr><th>委託者</th><td>タツタ電線株式会社</td></tr>
+              <tr><th>受託者</th><td>Jeremy McCarver</td></tr>
+              <tr><th>仲介者</th><td>株式会社GOSAPO</td></tr>
+              <tr><th>契約期間</th><td>2025/07/01 - 2026/04/30</td></tr>
+              <tr><th>研修対象</th><td>8名の社員</td></tr>
+            </table>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-label">研修内容</div>
+            <table class="detail-table">
+              <tr><th>言語</th><td>英語</td></tr>
+              <tr><th>レベル</th><td>初級〜中級</td></tr>
+              <tr><th>専門分野</th><td>製造業向けビジネス英語</td></tr>
+              <tr><th>形態</th><td>オンライン・対面併用</td></tr>
+              <tr><th>1回時間</th><td>90分</td></tr>
+              <tr><th>総回数</th><td>40回</td></tr>
+            </table>
+          </div>
+        </div>
+        
+        <div>
+          <div class="detail-section">
+            <div class="detail-label">報酬・支払い条件</div>
+            <div class="earnings-breakdown">
+              <div class="earnings-item">
+                <span class="earnings-label">レッスン料（¥8,000 × 40回）</span>
+                <span class="earnings-value">¥320,000</span>
+              </div>
+              <div class="earnings-item">
+                <span class="earnings-label">交通費（対面レッスン時）</span>
+                <span class="earnings-value">実費支給</span>
+              </div>
+              <div class="earnings-item">
+                <span class="earnings-label">教材費</span>
+                <span class="earnings-value">別途支給</span>
+              </div>
+              <div class="earnings-item earnings-total">
+                <span class="earnings-label">基本報酬総額</span>
+                <span class="earnings-value">¥320,000</span>
+              </div>
+              <div style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
+                <strong>支払い条件：</strong> 月末締め翌月末払い<br>
+                <strong>支払い方法：</strong> 銀行振込
+              </div>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <div class="detail-label">確定スケジュール</div>
+            <div class="schedule-summary">
+              <div class="schedule-pattern">基本パターン：毎週火曜 17:30-19:00</div>
+              <div class="schedule-details">
+                <strong>対面レッスン：</strong> 月1回程度（大阪本社）<br>
+                <strong>オンライン：</strong> その他の回（Zoom使用）
+              </div>
+              <ul class="schedule-list">
+                <li class="schedule-item">第1回：7/8（火）オンライン</li>
+                <li class="schedule-item">第2回：7/15（火）オンライン</li>
+                <li class="schedule-item">第3回：7/22（火）対面</li>
+                <li class="schedule-item">第4回：7/29（火）オンライン</li>
+                <li class="schedule-item">※以降も同パターンで継続</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 契約条項 -->
+    <div class="terms-conditions">
+      <div class="section-title">契約条項（重要事項）</div>
+      
+      <div class="terms-section">
+        <div class="terms-title">第1条：業務内容</div>
+        <div class="terms-content">
+          受託者は、委託者の指定する社員に対し、英語研修業務を実施します。
+          <ul class="terms-list">
+            <li>週1回、90分のグループレッスン（8名程度）</li>
+            <li>製造業に特化したビジネス英語の指導</li>
+            <li>オンライン・対面併用での指導</li>
+            <li>進捗報告書の月次提出</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="terms-section">
+        <div class="terms-title">第2条：報酬</div>
+        <div class="terms-content">
+          <ul class="terms-list">
+            <li>レッスン料：1回あたり8,000円（税込）</li>
+            <li>交通費：対面レッスン時の実費を支給</li>
+            <li>支払い：月末締め翌月末払い</li>
+            <li>振込手数料：委託者負担</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="terms-section">
+        <div class="terms-title">第3条：キャンセル・変更</div>
+        <div class="terms-content">
+          <ul class="terms-list">
+            <li>3営業日前まで：キャンセル料なし</li>
+            <li>前日〜当日：レッスン料の50%をキャンセル料として支払い</li>
+            <li>講師都合の場合：代替日程の調整または代替講師の手配</li>
+            <li>天災・不可抗力による中止：双方協議の上決定</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="terms-section">
+        <div class="terms-title">第4条：機密保持</div>
+        <div class="terms-content">
+          受託者は、業務上知り得た委託者の機密情報を第三者に開示せず、本契約終了後も機密保持義務を負います。
+        </div>
+      </div>
+
+      <div class="terms-section">
+        <div class="terms-title">第5条：契約期間・終了</div>
+        <div class="terms-content">
+          <ul class="terms-list">
+            <li>契約期間：2025年7月1日〜2026年4月30日</li>
+            <li>双方合意による期間延長可能</li>
+            <li>重大な契約違反があった場合、相手方は契約を解除可能</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 同意チェックボックス -->
+    <div class="checkbox-agreement">
+      <div class="section-title">契約内容への同意</div>
+      
+      <div class="agreement-item">
+        <input type="checkbox" id="agree-terms" required>
+        <label for="agree-terms" class="agreement-text">
+          上記の契約条項をすべて読み、理解し、同意します。<span class="agreement-required">（必須）</span>
+        </label>
+      </div>
+
+      <div class="agreement-item">
+        <input type="checkbox" id="agree-schedule" required>
+        <label for="agree-schedule" class="agreement-text">
+          確定したスケジュールでの研修実施に同意します。<span class="agreement-required">（必須）</span>
+        </label>
+      </div>
+
+      <div class="agreement-item">
+        <input type="checkbox" id="agree-confidentiality" required>
+        <label for="agree-confidentiality" class="agreement-text">
+          機密保持義務を理解し、遵守することを誓約します。<span class="agreement-required">（必須）</span>
+        </label>
+      </div>
+
+      <div class="agreement-item">
+        <input type="checkbox" id="agree-communication">
+        <label for="agree-communication" class="agreement-text">
+          GOSAPOからの研修関連の連絡を受け取ることに同意します。（任意）
+        </label>
+      </div>
+    </div>
+
+    <!-- 電子署名 -->
+    <div class="signature-section">
+      <div class="section-title">電子署名</div>
+      
+      <div class="signature-info">
+        <div class="signature-details">
+          <div class="signature-item">
+            <div class="signature-label">署名者</div>
+            <div class="signature-value">Jeremy McCarver</div>
+          </div>
+          <div class="signature-item">
+            <div class="signature-label">署名日時</div>
+            <div class="signature-value">2025年7月6日 15:30</div>
+          </div>
+          <div class="signature-item">
+            <div class="signature-label">IPアドレス</div>
+            <div class="signature-value">203.0.113.1</div>
+          </div>
+          <div class="signature-item">
+            <div class="signature-label">ブラウザ</div>
+            <div class="signature-value">Chrome 126.0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="digital-signature">
+        <div class="signature-icon">✍️</div>
+        <div class="signature-text">電子署名を実行</div>
+        <div class="signature-note">クリックすると契約が正式に締結されます</div>
+      </div>
+    </div>
+
+    <!-- 添付書類 -->
+    <div class="section">
+      <div class="section-title">契約関連書類</div>
+      <ul class="document-list">
+        <li class="document-item">
+          <div>
+            <div class="document-name">研修業務委託契約書（最終版）</div>
+            <div class="document-size">PDF, 245KB</div>
+          </div>
+          <button class="download-btn">ダウンロード</button>
+        </li>
+        
+        <li class="document-item">
+          <div>
+            <div class="document-name">研修カリキュラム詳細</div>
+            <div class="document-size">PDF, 156KB</div>
+          </div>
+          <button class="download-btn">ダウンロード</button>
+        </li>
+        
+        <li class="document-item">
+          <div>
+            <div class="document-name">確定スケジュール表</div>
+            <div class="document-size">Excel, 89KB</div>
+          </div>
+          <button class="download-btn">ダウンロード</button>
+        </li>
+        
+        <li class="document-item">
+          <div>
+            <div class="document-name">機密保持契約書</div>
+            <div class="document-size">PDF, 112KB</div>
+          </div>
+          <button class="download-btn">ダウンロード</button>
+        </li>
+      </ul>
+    </div>
+
+    <!-- 契約後の流れ -->
+    <div class="next-steps">
+      <div class="section-title">契約締結後の流れ</div>
+      <ul class="step-list">
+        <li class="step-item">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <div class="step-title">契約締結完了通知</div>
+            <div class="step-description">電子署名完了後、即座に全関係者に契約締結完了の通知が送信されます</div>
+          </div>
+        </li>
+        
+        <li class="step-item">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <div class="step-title">研修準備資料の送付</div>
+            <div class="step-description">企業情報、受講生プロフィール、推奨教材リストなどをお送りします</div>
+          </div>
+        </li>
+        
+        <li class="step-item">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <div class="step-title">初回レッスン準備</div>
+            <div class="step-description">Zoom設定、教材準備、アイスブレイク企画など第1回レッスンの準備</div>
+          </div>
+        </li>
+        
+        <li class="step-item">
+          <div class="step-number">4</div>
+          <div class="step-content">
+            <div class="step-title">研修開始</div>
+            <div class="step-description">2025年7月8日（火）17:30より第1回レッスン開始</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- サポート連絡先 -->
+    <div class="contact-support">
+      <div class="support-title">📞 ご質問・サポート</div>
+      <div class="support-details">
+        契約に関するご質問や技術的なサポートが必要な場合：<br>
+        <strong>GOSAPO運営チーム：</strong> support@gosapo.com | 03-1234-5678<br>
+        <strong>営業担当：</strong> 田中 (tanaka@gosapo.com)
+      </div>
+    </div>
+
+    <!-- アクションパネル -->
+    <div class="action-panel">
+      <div class="action-buttons">
+        <div class="action-left">
+          <button class="btn-secondary">契約書保存</button>
+          <button class="btn-secondary">質問・相談</button>
+          <div class="completion-indicator">準備完了: 100%</div>
+        </div>
+        <div class="action-right">
+          <button class="btn-danger">契約を辞退</button>
+          <button class="btn-success" id="sign-contract">電子署名して契約締結</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('sign-contract').addEventListener('click', function() {
+      const requiredCheckboxes = document.querySelectorAll('input[type="checkbox"][required]');
+      let allChecked = true;
+      
+      requiredCheckboxes.forEach(checkbox => {
+        if (!checkbox.checked) {
+          allChecked = false;
+        }
+      });
+      
+      if (!allChecked) {
+        alert('必須項目への同意が完了していません。すべての必須項目にチェックを入れてください。');
+        return;
+      }
+      
+      if (confirm('契約に電子署名を行います。この操作は取り消せません。本当に実行しますか？')) {
+        alert('契約締結完了！\n\nおめでとうございます。タツタ電線株式会社との研修契約が正式に締結されました。\n\n契約締結完了通知をお送りしました。\n研修開始に向けて準備資料をお送りいたします。');
+      }
+    });
+  </script>
+</body>
+</html>

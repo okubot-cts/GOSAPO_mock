@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - オファー管理ダッシュボード</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 2rem; padding: 1.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1.5rem; text-align: center; }
+    .stat-number { font-size: 2rem; font-weight: bold; color: #007bff; margin-bottom: 0.5rem; }
+    .stat-label { color: #666; font-size: 0.9rem; }
+    .offer-table { width: 100%; border-collapse: collapse; }
+    .offer-table th, .offer-table td { border: 1px solid #ddd; padding: 0.7rem; text-align: left; }
+    .offer-table th { background: #f8f9fa; }
+    .offer-table tr:nth-child(even) { background: #fafbfc; }
+    .material-link { color: #007bff; text-decoration: underline; cursor: pointer; }
+    .status-badge { padding: 0.2rem 0.7rem; border-radius: 10px; font-size: 0.85rem; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-waiting { background: #cce7ff; color: #004085; }
+    .status-accepted { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-contracted { background: #e2e3e5; color: #383d41; }
+    .action-btn { background: #007bff; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 2px; cursor: pointer; font-size: 0.9rem; margin-right: 0.5rem; }
+    .action-btn:hover { background: #0056b3; }
+    .action-btn.success { background: #28a745; }
+    .action-btn.success:hover { background: #1e7e34; }
+    .quick-actions { margin-bottom: 2rem; }
+    .quick-actions .action-btn { margin-right: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">CTSスタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li class="active">オファー管理</li>
+      <li>オファー一覧</li>
+      <li>新規オファー</li>
+      <li>講師管理</li>
+      <li>研修情報</li>
+      <li>契約管理</li>
+      <li>日程調整</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <!-- 統計情報 -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number">12</div>
+        <div class="stat-label">進行中のオファー</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">5</div>
+        <div class="stat-label">回答待ち</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">3</div>
+        <div class="stat-label">契約待ち</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">28</div>
+        <div class="stat-label">今月の契約完了</div>
+      </div>
+    </div>
+
+    <!-- クイックアクション -->
+    <div class="section">
+      <div class="section-title">クイックアクション</div>
+      <div class="quick-actions">
+        <button class="action-btn success" onclick="location.href='offer_create.html'">新規オファー作成</button>
+        <button class="action-btn" onclick="location.href='offer_list.html'">オファー一覧</button>
+        <button class="action-btn" onclick="location.href='instructor_list.html'">講師管理</button>
+        <button class="action-btn" onclick="location.href='schedule_coordination.html'">日程調整</button>
+      </div>
+    </div>
+
+    <!-- 最近のオファー -->
+    <div class="section">
+      <div class="section-title">最近のオファー</div>
+      <table class="offer-table">
+        <thead>
+          <tr>
+            <th>オファーID</th>
+            <th>企業名</th>
+            <th>研修名</th>
+            <th>講師</th>
+            <th>作成日</th>
+            <th>ステータス</th>
+            <th>アクション</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-001</a></td>
+            <td>タツタ電線株式会社</td>
+            <td>2025年度 英語研修</td>
+            <td>Jeremy McCarver</td>
+            <td>2025/01/15</td>
+            <td><span class="status-badge status-waiting">回答待ち</span></td>
+            <td><button class="action-btn">詳細</button></td>
+          </tr>
+          <tr>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-002</a></td>
+            <td>ABC商事株式会社</td>
+            <td>ビジネス英語研修</td>
+            <td>Sarah Johnson</td>
+            <td>2025/01/14</td>
+            <td><span class="status-badge status-accepted">承諾済み</span></td>
+            <td><button class="action-btn">詳細</button></td>
+          </tr>
+          <tr>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-003</a></td>
+            <td>XYZ製造株式会社</td>
+            <td>中国語基礎研修</td>
+            <td>陸 ペイ</td>
+            <td>2025/01/13</td>
+            <td><span class="status-badge status-contracted">契約完了</span></td>
+            <td><button class="action-btn">詳細</button></td>
+          </tr>
+          <tr>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-004</a></td>
+            <td>DEF技術株式会社</td>
+            <td>英語プレゼンテーション研修</td>
+            <td>Michael Davis</td>
+            <td>2025/01/12</td>
+            <td><span class="status-badge status-rejected">拒否</span></td>
+            <td><button class="action-btn">詳細</button></td>
+          </tr>
+          <tr>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-005</a></td>
+            <td>GHI金融株式会社</td>
+            <td>ビジネス英語上級研修</td>
+            <td>Emma Wilson</td>
+            <td>2025/01/11</td>
+            <td><span class="status-badge status-pending">作成中</span></td>
+            <td><button class="action-btn">詳細</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 要対応オファー -->
+    <div class="section">
+      <div class="section-title">要対応オファー</div>
+      <table class="offer-table">
+        <thead>
+          <tr>
+            <th>オファーID</th>
+            <th>企業名</th>
+            <th>講師</th>
+            <th>対応内容</th>
+            <th>期限</th>
+            <th>アクション</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-001</a></td>
+            <td>タツタ電線株式会社</td>
+            <td>Jeremy McCarver</td>
+            <td>講師からの回答確認</td>
+            <td>2025/01/20</td>
+            <td><button class="action-btn">確認</button></td>
+          </tr>
+          <tr>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-002</a></td>
+            <td>ABC商事株式会社</td>
+            <td>Sarah Johnson</td>
+            <td>日程調整</td>
+            <td>2025/01/18</td>
+            <td><button class="action-btn">調整</button></td>
+          </tr>
+          <tr>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-006</a></td>
+            <td>JKL商事株式会社</td>
+            <td>David Brown</td>
+            <td>契約書送信</td>
+            <td>2025/01/17</td>
+            <td><button class="action-btn">送信</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html> 

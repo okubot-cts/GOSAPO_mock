@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - オファー一覧</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 2rem; padding: 1.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .filter-bar { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; }
+    .filter-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .filter-group { display: flex; flex-direction: column; }
+    .filter-label { font-size: 0.9rem; font-weight: bold; margin-bottom: 0.3rem; }
+    .filter-input { padding: 0.5rem; border: 1px solid #ccc; border-radius: 2px; font-size: 0.9rem; }
+    .filter-select { padding: 0.5rem; border: 1px solid #ccc; border-radius: 2px; font-size: 0.9rem; }
+    .offer-table { width: 100%; border-collapse: collapse; }
+    .offer-table th, .offer-table td { border: 1px solid #ddd; padding: 0.7rem; text-align: left; }
+    .offer-table th { background: #f8f9fa; font-weight: bold; }
+    .offer-table tr:nth-child(even) { background: #fafbfc; }
+    .offer-table tr:hover { background: #e7f3ff; }
+    .status-badge { padding: 0.2rem 0.7rem; border-radius: 10px; font-size: 0.85rem; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-waiting { background: #cce7ff; color: #004085; }
+    .status-accepted { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-contracted { background: #e2e3e5; color: #383d41; }
+    .status-schedule { background: #d1ecf1; color: #0c5460; }
+    .action-btn { background: #007bff; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 2px; cursor: pointer; font-size: 0.9rem; margin-right: 0.5rem; }
+    .action-btn:hover { background: #0056b3; }
+    .action-btn.success { background: #28a745; }
+    .action-btn.success:hover { background: #1e7e34; }
+    .action-btn.warning { background: #ffc107; color: #212529; }
+    .action-btn.warning:hover { background: #e0a800; }
+    .action-btn.secondary { background: #6c757d; }
+    .action-btn.secondary:hover { background: #545b62; }
+    .material-link { color: #007bff; text-decoration: underline; cursor: pointer; }
+    .batch-actions { margin-bottom: 1rem; }
+    .batch-actions .action-btn { margin-right: 1rem; }
+    .pagination { display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-top: 1rem; }
+    .pagination .page-btn { background: #fff; border: 1px solid #ddd; padding: 0.5rem 0.8rem; cursor: pointer; }
+    .pagination .page-btn:hover { background: #f8f9fa; }
+    .pagination .page-btn.active { background: #007bff; color: #fff; border-color: #007bff; }
+    .summary-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .stat-item { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; text-align: center; }
+    .stat-number { font-size: 1.5rem; font-weight: bold; color: #007bff; }
+    .stat-label { font-size: 0.9rem; color: #666; }
+    .search-bar { display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+    .search-input { flex: 1; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; }
+    .export-menu { position: relative; display: inline-block; }
+    .export-dropdown { display: none; position: absolute; right: 0; top: 100%; background: #fff; border: 1px solid #ddd; border-radius: 4px; z-index: 100; }
+    .export-dropdown.show { display: block; }
+    .export-item { padding: 0.7rem 1rem; cursor: pointer; border-bottom: 1px solid #eee; }
+    .export-item:hover { background: #f8f9fa; }
+    .export-item:last-child { border-bottom: none; }
+    .bulk-checkbox { margin-right: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">CTSスタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>オファー管理</li>
+      <li class="active">オファー一覧</li>
+      <li>新規オファー</li>
+      <li>講師管理</li>
+      <li>研修情報</li>
+      <li>契約管理</li>
+      <li>日程調整</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">
+      <a href="offer_dashboard.html" class="material-link">&lt; オファー管理に戻る</a>
+    </div>
+
+    <!-- 統計サマリー -->
+    <div class="section">
+      <div class="section-title">オファー統計</div>
+      <div class="summary-stats">
+        <div class="stat-item">
+          <div class="stat-number">25</div>
+          <div class="stat-label">総オファー数</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">8</div>
+          <div class="stat-label">回答待ち</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">12</div>
+          <div class="stat-label">承諾済み</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">3</div>
+          <div class="stat-label">契約完了</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-number">2</div>
+          <div class="stat-label">拒否</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 検索・フィルタ -->
+    <div class="section">
+      <div class="section-title">検索・フィルタ</div>
+      <div class="search-bar">
+        <input type="text" class="search-input" placeholder="企業名、研修名、講師名で検索...">
+        <button class="action-btn">検索</button>
+        <button class="action-btn secondary">リセット</button>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label class="filter-label">ステータス</label>
+            <select class="filter-select">
+              <option value="">すべて</option>
+              <option value="pending">作成中</option>
+              <option value="waiting">回答待ち</option>
+              <option value="accepted">承諾済み</option>
+              <option value="rejected">拒否</option>
+              <option value="schedule">日程調整中</option>
+              <option value="contracted">契約完了</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">作成日</label>
+            <input type="date" class="filter-input">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">作成日（終了）</label>
+            <input type="date" class="filter-input">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">担当者</label>
+            <select class="filter-select">
+              <option value="">すべて</option>
+              <option value="tanaka">田中</option>
+              <option value="suzuki">鈴木</option>
+              <option value="sato">佐藤</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 一括操作 -->
+    <div class="section">
+      <div class="section-title">オファー一覧</div>
+      <div class="batch-actions">
+        <button class="action-btn success" onclick="location.href='offer_create.html'">新規オファー作成</button>
+        <button class="action-btn warning">選択項目を一括送信</button>
+        <button class="action-btn secondary">選択項目を一括削除</button>
+        <div class="export-menu">
+          <button class="action-btn" onclick="toggleExportMenu()">エクスポート ▼</button>
+          <div class="export-dropdown" id="exportDropdown">
+            <div class="export-item">Excel形式でエクスポート</div>
+            <div class="export-item">CSV形式でエクスポート</div>
+            <div class="export-item">PDF形式でエクスポート</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- オファー一覧テーブル -->
+      <table class="offer-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" class="bulk-checkbox" onchange="toggleAllCheckboxes(this)"></th>
+            <th>オファーID</th>
+            <th>企業名</th>
+            <th>研修名</th>
+            <th>講師</th>
+            <th>作成日</th>
+            <th>回答期限</th>
+            <th>ステータス</th>
+            <th>担当者</th>
+            <th>アクション</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><input type="checkbox" class="bulk-checkbox"></td>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-001</a></td>
+            <td>タツタ電線株式会社</td>
+            <td>2025年度 英語研修</td>
+            <td>Jeremy McCarver</td>
+            <td>2025/01/15</td>
+            <td>2025/01/25</td>
+            <td><span class="status-badge status-waiting">回答待ち</span></td>
+            <td>田中</td>
+            <td>
+              <button class="action-btn" onclick="location.href='offer_detail.html'">詳細</button>
+              <button class="action-btn warning">編集</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="bulk-checkbox"></td>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-002</a></td>
+            <td>ABC商事株式会社</td>
+            <td>ビジネス英語研修</td>
+            <td>Sarah Johnson</td>
+            <td>2025/01/14</td>
+            <td>2025/01/24</td>
+            <td><span class="status-badge status-schedule">日程調整中</span></td>
+            <td>鈴木</td>
+            <td>
+              <button class="action-btn" onclick="location.href='offer_detail.html'">詳細</button>
+              <button class="action-btn warning">編集</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="bulk-checkbox"></td>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-003</a></td>
+            <td>XYZ製造株式会社</td>
+            <td>中国語基礎研修</td>
+            <td>陸 ペイ</td>
+            <td>2025/01/13</td>
+            <td>2025/01/23</td>
+            <td><span class="status-badge status-contracted">契約完了</span></td>
+            <td>佐藤</td>
+            <td>
+              <button class="action-btn" onclick="location.href='offer_detail.html'">詳細</button>
+              <button class="action-btn success">契約書</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="bulk-checkbox"></td>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-004</a></td>
+            <td>DEF技術株式会社</td>
+            <td>英語プレゼンテーション研修</td>
+            <td>Michael Davis</td>
+            <td>2025/01/12</td>
+            <td>2025/01/22</td>
+            <td><span class="status-badge status-rejected">拒否</span></td>
+            <td>田中</td>
+            <td>
+              <button class="action-btn" onclick="location.href='offer_detail.html'">詳細</button>
+              <button class="action-btn secondary">再送</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="bulk-checkbox"></td>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-005</a></td>
+            <td>GHI金融株式会社</td>
+            <td>ビジネス英語上級研修</td>
+            <td>Emma Wilson</td>
+            <td>2025/01/11</td>
+            <td>2025/01/21</td>
+            <td><span class="status-badge status-accepted">承諾済み</span></td>
+            <td>鈴木</td>
+            <td>
+              <button class="action-btn" onclick="location.href='offer_detail.html'">詳細</button>
+              <button class="action-btn warning" onclick="location.href='schedule_coordination.html'">日程調整</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="bulk-checkbox"></td>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-006</a></td>
+            <td>JKL商事株式会社</td>
+            <td>中国語中級研修</td>
+            <td>黄 琦</td>
+            <td>2025/01/10</td>
+            <td>2025/01/20</td>
+            <td><span class="status-badge status-waiting">回答待ち</span></td>
+            <td>佐藤</td>
+            <td>
+              <button class="action-btn" onclick="location.href='offer_detail.html'">詳細</button>
+              <button class="action-btn warning">編集</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="bulk-checkbox"></td>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-007</a></td>
+            <td>MNO建設株式会社</td>
+            <td>英語基礎研修</td>
+            <td>David Brown</td>
+            <td>2025/01/09</td>
+            <td>2025/01/19</td>
+            <td><span class="status-badge status-pending">作成中</span></td>
+            <td>田中</td>
+            <td>
+              <button class="action-btn" onclick="location.href='offer_detail.html'">詳細</button>
+              <button class="action-btn warning">編集</button>
+            </td>
+          </tr>
+          <tr>
+            <td><input type="checkbox" class="bulk-checkbox"></td>
+            <td><a href="offer_detail.html" class="material-link">OFF-2025-008</a></td>
+            <td>PQR流通株式会社</td>
+            <td>英語コミュニケーション研修</td>
+            <td>Lisa Anderson</td>
+            <td>2025/01/08</td>
+            <td>2025/01/18</td>
+            <td><span class="status-badge status-accepted">承諾済み</span></td>
+            <td>鈴木</td>
+            <td>
+              <button class="action-btn" onclick="location.href='offer_detail.html'">詳細</button>
+              <button class="action-btn warning" onclick="location.href='schedule_coordination.html'">日程調整</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- ページネーション -->
+      <div class="pagination">
+        <div class="page-btn">&lt;&lt;</div>
+        <div class="page-btn">&lt;</div>
+        <div class="page-btn active">1</div>
+        <div class="page-btn">2</div>
+        <div class="page-btn">3</div>
+        <div class="page-btn">...</div>
+        <div class="page-btn">10</div>
+        <div class="page-btn">&gt;</div>
+        <div class="page-btn">&gt;&gt;</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleExportMenu() {
+      const dropdown = document.getElementById('exportDropdown');
+      dropdown.classList.toggle('show');
+    }
+
+    function toggleAllCheckboxes(master) {
+      const checkboxes = document.querySelectorAll('.bulk-checkbox');
+      checkboxes.forEach(checkbox => {
+        if (checkbox !== master) {
+          checkbox.checked = master.checked;
+        }
+      });
+    }
+
+    // Close dropdown when clicking outside
+    window.addEventListener('click', function(event) {
+      if (!event.target.matches('.action-btn')) {
+        const dropdown = document.getElementById('exportDropdown');
+        if (dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+        }
+      }
+    });
+  </script>
+</body>
+</html> 

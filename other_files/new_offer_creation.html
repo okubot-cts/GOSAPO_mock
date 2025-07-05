@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 新規オファー作成</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; color: #007bff; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; color: #007bff; }
+    .main { margin-left: 200px; padding: 2rem 3vw; max-width: 1200px; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .page-header { margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .page-subtitle { color: #666; font-size: 1rem; }
+    .progress-indicator { display: flex; justify-content: center; margin-bottom: 2rem; }
+    .progress-step { display: flex; flex-direction: column; align-items: center; flex: 1; position: relative; }
+    .progress-step.active .step-circle { background: #007bff; color: #fff; }
+    .progress-step.completed .step-circle { background: #28a745; color: #fff; }
+    .step-circle { width: 35px; height: 35px; border-radius: 50%; background: #e9ecef; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 0.5rem; }
+    .step-label { font-size: 0.8rem; text-align: center; }
+    .step-line { position: absolute; top: 17px; left: 50%; right: -50%; height: 2px; background: #e9ecef; z-index: -1; }
+    .step-line.active { background: #007bff; }
+    .step-line.completed { background: #28a745; }
+    .form-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1.5rem; color: #007bff; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group.full-width { grid-column: 1 / -1; }
+    .form-label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: #333; }
+    .form-label.required::after { content: ' *'; color: #dc3545; }
+    .form-input, .form-select, .form-textarea { padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+    .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0,123,255,0.25); }
+    .form-textarea { min-height: 100px; resize: vertical; }
+    .form-help { font-size: 0.8rem; color: #666; margin-top: 0.3rem; }
+    .btn-primary { background: #007bff; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; margin-right: 1rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-success:hover { background: #218838; }
+    .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+    .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    .requirements-section { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+    .requirements-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .requirement-item { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 1rem; }
+    .requirement-label { font-weight: 600; margin-bottom: 0.5rem; color: #007bff; }
+    .requirement-value { font-size: 0.9rem; }
+    .budget-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; }
+    .budget-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .budget-item { text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 6px; }
+    .budget-amount { font-size: 1.5rem; font-weight: bold; color: #007bff; }
+    .budget-label { font-size: 0.9rem; color: #666; margin-top: 0.3rem; }
+    .timeline-section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; }
+    .timeline-item { display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid #eee; }
+    .timeline-item:last-child { border-bottom: none; }
+    .timeline-date { width: 120px; font-weight: bold; color: #007bff; }
+    .timeline-content { flex: 1; }
+    .timeline-title { font-weight: 600; margin-bottom: 0.3rem; }
+    .timeline-description { font-size: 0.9rem; color: #666; }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 1rem; }
+    .checkbox-item { display: flex; align-items: center; gap: 0.5rem; }
+    .checkbox-item input[type="checkbox"] { margin: 0; }
+    .action-buttons { display: flex; justify-content: space-between; align-items: center; margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e0e0e0; }
+    .action-left { display: flex; gap: 1rem; }
+    .action-right { display: flex; gap: 1rem; }
+    .validation-error { color: #dc3545; font-size: 0.8rem; margin-top: 0.3rem; }
+    .auto-suggestions { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 1rem; margin-top: 1rem; }
+    .suggestion-title { font-weight: bold; margin-bottom: 0.5rem; color: #1976d2; }
+    .suggestion-list { list-style: none; padding: 0; margin: 0; }
+    .suggestion-item { padding: 0.3rem 0; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Management</div>
+    <div class="user-info">GOSAPO運営スタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>ダッシュボード</li>
+      <li class="active">新規オファー作成</li>
+      <li>オファー管理</li>
+      <li>講師マッチング</li>
+      <li>日程調整</li>
+      <li>クライアント管理</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">← ダッシュボード</div>
+    
+    <div class="page-header">
+      <div class="page-title">新規研修オファー作成</div>
+      <div class="page-subtitle">新しい研修案件の基本情報を入力し、オファーを作成します</div>
+    </div>
+
+    <!-- 進捗インジケーター -->
+    <div class="progress-indicator">
+      <div class="progress-step active">
+        <div class="step-circle">1</div>
+        <div class="step-label">基本情報</div>
+        <div class="step-line active"></div>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle">2</div>
+        <div class="step-label">研修要件</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle">3</div>
+        <div class="step-label">予算・条件</div>
+        <div class="step-line"></div>
+      </div>
+      <div class="progress-step">
+        <div class="step-circle">4</div>
+        <div class="step-label">確認・送信</div>
+      </div>
+    </div>
+
+    <!-- アラート -->
+    <div class="alert alert-info">
+      <strong>新規オファー作成ガイド：</strong> 正確な情報入力により、最適な講師のマッチングと効率的な日程調整が可能になります。必須項目（*）は必ず入力してください。
+    </div>
+
+    <!-- 基本情報 -->
+    <div class="form-section">
+      <div class="section-title">1. 基本情報</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label required">案件名</label>
+          <input type="text" class="form-input" placeholder="例：○○株式会社 2025年度英語研修">
+          <div class="form-help">社内管理用の案件名を入力してください</div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label required">クライアント企業</label>
+          <select class="form-select">
+            <option>-- 選択してください --</option>
+            <option>タツタ電線株式会社</option>
+            <option>ABC商事株式会社</option>
+            <option>XYZ製造株式会社</option>
+            <option>新規企業を追加</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">研修開始予定日</label>
+          <input type="date" class="form-input">
+          <div class="form-help">想定している研修開始時期</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">研修終了予定日</label>
+          <input type="date" class="form-input">
+          <div class="form-help">研修完了予定時期</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">緊急度</label>
+          <select class="form-select">
+            <option>通常</option>
+            <option>急ぎ</option>
+            <option>至急</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">営業担当者</label>
+          <select class="form-select">
+            <option>田中 営業</option>
+            <option>佐藤 営業</option>
+            <option>山田 営業</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label class="form-label">案件概要</label>
+          <textarea class="form-textarea" placeholder="研修の背景、目的、特記事項など"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 研修要件 -->
+    <div class="form-section">
+      <div class="section-title">2. 研修要件</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label required">言語</label>
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="lang-en">
+              <label for="lang-en">英語</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="lang-cn">
+              <label for="lang-cn">中国語</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="lang-ko">
+              <label for="lang-ko">韓国語</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="lang-other">
+              <label for="lang-other">その他</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">レベル</label>
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="level-beginner">
+              <label for="level-beginner">初級</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="level-intermediate">
+              <label for="level-intermediate">中級</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="level-advanced">
+              <label for="level-advanced">上級</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="level-business">
+              <label for="level-business">ビジネス</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">実施形態</label>
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="format-online">
+              <label for="format-online">オンライン</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="format-onsite">
+              <label for="format-onsite">対面</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="format-hybrid">
+              <label for="format-hybrid">ハイブリッド</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">予定受講者数</label>
+          <input type="number" class="form-input" placeholder="例：8">
+          <div class="form-help">想定している受講者数</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">総レッスン数</label>
+          <input type="number" class="form-input" placeholder="例：40">
+          <div class="form-help">研修期間全体でのレッスン回数</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">1回あたりのレッスン時間</label>
+          <select class="form-select">
+            <option>60分</option>
+            <option>90分</option>
+            <option>120分</option>
+            <option>その他</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">希望曜日・時間帯</label>
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="time-morning">
+              <label for="time-morning">午前(9:00-12:00)</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="time-afternoon">
+              <label for="time-afternoon">午後(13:00-17:00)</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="time-evening">
+              <label for="time-evening">夕方(17:00-20:00)</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">実施場所（対面の場合）</label>
+          <input type="text" class="form-input" placeholder="例：大阪本社 会議室A">
+        </div>
+
+        <div class="form-group full-width">
+          <label class="form-label">特別な要求・注意事項</label>
+          <textarea class="form-textarea" placeholder="業界特有の専門用語、特定の資格対応、企業文化への配慮など"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- 予算・条件 -->
+    <div class="form-section">
+      <div class="section-title">3. 予算・条件</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label required">予算上限（総額）</label>
+          <input type="number" class="form-input" placeholder="例：800000">
+          <div class="form-help">税込み総額（円）</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">1レッスンあたりの講師料上限</label>
+          <input type="number" class="form-input" placeholder="例：8000">
+          <div class="form-help">講師への支払い上限額（円）</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">支払い条件</label>
+          <select class="form-select">
+            <option>月末締め翌月末払い</option>
+            <option>各レッスン終了後1週間以内</option>
+            <option>研修完了後一括</option>
+            <option>その他</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">交通費</label>
+          <select class="form-select">
+            <option>実費支給</option>
+            <option>一律支給</option>
+            <option>支給なし</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">教材費</label>
+          <select class="form-select">
+            <option>クライアント負担</option>
+            <option>GOSAPO負担</option>
+            <option>講師負担</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">キャンセル規定</label>
+          <select class="form-select">
+            <option>標準規定を適用</option>
+            <option>特別規定を設定</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="budget-section">
+        <h4>予算シミュレーション</h4>
+        <div class="budget-grid">
+          <div class="budget-item">
+            <div class="budget-amount">¥320,000</div>
+            <div class="budget-label">講師料総額（予想）</div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-amount">¥160,000</div>
+            <div class="budget-label">GOSAPO手数料（20%）</div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-amount">¥50,000</div>
+            <div class="budget-label">その他経費</div>
+          </div>
+          <div class="budget-item">
+            <div class="budget-amount">¥530,000</div>
+            <div class="budget-label">想定総額</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 講師要件 -->
+    <div class="form-section">
+      <div class="section-title">4. 講師要件</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">希望する講師の属性</label>
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="instructor-native">
+              <label for="instructor-native">ネイティブスピーカー</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="instructor-japanese">
+              <label for="instructor-japanese">日本人講師</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="instructor-bilingual">
+              <label for="instructor-bilingual">バイリンガル</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">必要な資格・経験</label>
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="cert-tesol">
+              <label for="cert-tesol">TESOL</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="cert-tefl">
+              <label for="cert-tefl">TEFL</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="cert-business">
+              <label for="cert-business">ビジネス経験</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="cert-industry">
+              <label for="cert-industry">業界知識</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">最低経験年数</label>
+          <select class="form-select">
+            <option>問わない</option>
+            <option>1年以上</option>
+            <option>3年以上</option>
+            <option>5年以上</option>
+            <option>10年以上</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label class="form-label">その他の講師要件</label>
+          <textarea class="form-textarea" placeholder="特定業界での指導経験、特別なスキル要件など"></textarea>
+        </div>
+      </div>
+
+      <div class="auto-suggestions">
+        <div class="suggestion-title">💡 おすすめ講師マッチング</div>
+        <ul class="suggestion-list">
+          <li>• 入力された条件に基づき、現在3名の講師がマッチしています</li>
+          <li>• Jeremy McCarver: ビジネス英語専門、製造業での指導経験豊富</li>
+          <li>• Matt Lowerson: TESOL資格保有、オンライン指導実績多数</li>
+          <li>• このオファーを保存後、詳細なマッチング結果を確認できます</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- スケジュール -->
+    <div class="timeline-section">
+      <div class="section-title">5. 想定スケジュール</div>
+      <div class="timeline-item">
+        <div class="timeline-date">今日</div>
+        <div class="timeline-content">
+          <div class="timeline-title">オファー作成</div>
+          <div class="timeline-description">基本情報入力、講師要件設定</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">1-2日後</div>
+        <div class="timeline-content">
+          <div class="timeline-title">講師マッチング</div>
+          <div class="timeline-description">適格講師の選定、詳細情報の確認</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">3-5日後</div>
+        <div class="timeline-content">
+          <div class="timeline-title">講師への打診</div>
+          <div class="timeline-description">オファー内容の送信、回答期限設定</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">1週間後</div>
+        <div class="timeline-content">
+          <div class="timeline-title">日程調整開始</div>
+          <div class="timeline-description">講師確定後、詳細スケジュール調整</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-date">2週間後</div>
+        <div class="timeline-content">
+          <div class="timeline-title">契約締結・研修開始</div>
+          <div class="timeline-description">最終条件確定、研修スタート</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- アクションボタン -->
+    <div class="action-buttons">
+      <div class="action-left">
+        <button class="btn-secondary">下書き保存</button>
+        <button class="btn-secondary">テンプレート保存</button>
+      </div>
+      <div class="action-right">
+        <button class="btn-primary">プレビュー確認</button>
+        <button class="btn-success">オファー作成・講師マッチング開始</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

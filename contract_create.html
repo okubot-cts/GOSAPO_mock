@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 契約作成</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 2rem; padding: 1.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .info-table th, .info-table td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid #eee; }
+    .info-table th { color: #666; width: 140px; background: #f8f9fa; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+    .form-input { width: 100%; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
+    .form-select { width: 100%; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
+    .form-textarea { width: 100%; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; min-height: 100px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+    .action-btn { background: #007bff; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 2px; cursor: pointer; font-size: 1rem; margin-right: 1rem; }
+    .action-btn:hover { background: #0056b3; }
+    .action-btn.success { background: #28a745; }
+    .action-btn.success:hover { background: #1e7e34; }
+    .action-btn.warning { background: #ffc107; color: #212529; }
+    .action-btn.warning:hover { background: #e0a800; }
+    .action-btn.secondary { background: #6c757d; }
+    .action-btn.secondary:hover { background: #545b62; }
+    .action-btn.danger { background: #dc3545; }
+    .action-btn.danger:hover { background: #c82333; }
+    .material-link { color: #007bff; text-decoration: underline; cursor: pointer; }
+    .status-badge { padding: 0.2rem 0.7rem; border-radius: 10px; font-size: 0.85rem; }
+    .status-draft { background: #fff3cd; color: #856404; }
+    .status-sent { background: #cce7ff; color: #004085; }
+    .status-signed { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-expired { background: #e2e3e5; color: #383d41; }
+    .contract-preview { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; max-height: 400px; overflow-y: auto; }
+    .contract-header { border-bottom: 2px solid #333; padding-bottom: 1rem; margin-bottom: 1rem; text-align: center; }
+    .contract-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .contract-section { margin-bottom: 1.5rem; }
+    .contract-section-title { font-weight: bold; margin-bottom: 0.5rem; border-bottom: 1px solid #ddd; padding-bottom: 0.2rem; }
+    .timeline { position: relative; padding-left: 2rem; }
+    .timeline-item { position: relative; padding-bottom: 1.5rem; }
+    .timeline-item:before { content: ''; position: absolute; left: -2rem; top: 0.5rem; width: 10px; height: 10px; background: #007bff; border-radius: 50%; }
+    .timeline-item:after { content: ''; position: absolute; left: -1.6rem; top: 1.2rem; width: 2px; height: calc(100% - 0.7rem); background: #ddd; }
+    .timeline-item:last-child:after { display: none; }
+    .timeline-date { font-size: 0.85rem; color: #666; margin-bottom: 0.3rem; }
+    .timeline-content { background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 3px solid #007bff; }
+    .timeline-author { font-weight: bold; margin-bottom: 0.5rem; }
+    .zoho-integration { background: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; }
+    .zoho-status { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+    .zoho-icon { width: 24px; height: 24px; background: #007bff; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.8rem; }
+    .file-upload { border: 2px dashed #ddd; border-radius: 4px; padding: 2rem; text-align: center; margin-bottom: 1rem; }
+    .file-upload:hover { border-color: #007bff; background: #f8f9fa; }
+    .file-upload input[type="file"] { display: none; }
+    .file-upload label { cursor: pointer; color: #007bff; font-weight: bold; }
+    .schedule-summary { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; }
+    .required { color: #dc3545; }
+    .action-area { text-align: center; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">CTSスタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>オファー管理</li>
+      <li>オファー一覧</li>
+      <li>新規オファー</li>
+      <li>講師管理</li>
+      <li>研修情報</li>
+      <li class="active">契約管理</li>
+      <li>日程調整</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">
+      <a href="offer_dashboard.html" class="material-link">&lt; オファー管理</a> | 
+      <a href="offer_detail.html" class="material-link">オファー詳細</a> |
+      <a href="schedule_coordination.html" class="material-link">日程調整</a>
+    </div>
+
+    <!-- 契約基本情報 -->
+    <div class="section">
+      <div class="section-title">契約基本情報</div>
+      <table class="info-table">
+        <tr><th>オファーID</th><td>OFF-2025-001</td></tr>
+        <tr><th>契約ID</th><td>CON-2025-001</td></tr>
+        <tr><th>契約ステータス</th><td><span class="status-badge status-draft">下書き</span></td></tr>
+        <tr><th>作成日</th><td>2025年1月20日</td></tr>
+        <tr><th>作成者</th><td>田中（CTS）</td></tr>
+        <tr><th>契約期間</th><td>2025年7月1日 〜 2026年4月30日</td></tr>
+      </table>
+    </div>
+
+    <!-- 契約相手情報 -->
+    <div class="section">
+      <div class="section-title">契約相手情報</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">講師名 <span class="required">*</span></label>
+          <input type="text" class="form-input" value="Jeremy McCarver" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">メールアドレス <span class="required">*</span></label>
+          <input type="email" class="form-input" value="jeremy.mccarver@cts-education.com" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">住所</label>
+          <input type="text" class="form-input" value="大阪府大阪市北区">
+        </div>
+        <div class="form-group">
+          <label class="form-label">電話番号</label>
+          <input type="tel" class="form-input" value="090-1234-5678">
+        </div>
+      </div>
+    </div>
+
+    <!-- 契約内容 -->
+    <div class="section">
+      <div class="section-title">契約内容</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">企業名</label>
+          <input type="text" class="form-input" value="タツタ電線株式会社" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">研修名</label>
+          <input type="text" class="form-input" value="2025年度 英語研修" readonly>
+        </div>
+      </div>
+      <div class="form-row three">
+        <div class="form-group">
+          <label class="form-label">総レッスン数</label>
+          <input type="number" class="form-input" value="30" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">1回あたりの報酬</label>
+          <input type="number" class="form-input" value="12000" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">総報酬額</label>
+          <input type="number" class="form-input" value="360000" readonly>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">支払い条件</label>
+        <select class="form-select">
+          <option value="monthly">月払い</option>
+          <option value="per_lesson">レッスン毎</option>
+          <option value="lump_sum">一括払い</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 確定済み日程概要 -->
+    <div class="section">
+      <div class="section-title">確定済み日程概要</div>
+      <div class="schedule-summary">
+        <div><strong>確定済み日程：</strong> 8回 / 30回</div>
+        <div><strong>基本日程：</strong> 火曜日 17:30-19:00</div>
+        <div><strong>実施形態：</strong> オンライン</div>
+        <div><strong>使用教材：</strong> Listen & Quick Answer Level 1</div>
+        <div style="margin-top: 1rem;">
+          <a href="schedule_coordination.html" class="material-link">日程調整画面で詳細を確認</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 契約書テンプレート -->
+    <div class="section">
+      <div class="section-title">契約書テンプレート</div>
+      <div class="form-group">
+        <label class="form-label">テンプレート選択</label>
+        <select class="form-select">
+          <option value="standard">標準講師契約書</option>
+          <option value="native">ネイティブ講師契約書</option>
+          <option value="corporate">企業研修講師契約書</option>
+          <option value="custom">カスタムテンプレート</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">追加条項</label>
+        <textarea class="form-textarea" placeholder="特別な条項があれば記載してください"></textarea>
+      </div>
+    </div>
+
+    <!-- 契約書プレビュー -->
+    <div class="section">
+      <div class="section-title">契約書プレビュー</div>
+      <div class="contract-preview">
+        <div class="contract-header">
+          <div class="contract-title">講師業務委託契約書</div>
+          <div>契約番号：CON-2025-001</div>
+        </div>
+        
+        <div class="contract-section">
+          <div class="contract-section-title">第1条（委託業務の内容）</div>
+          <div>
+            委託者（CTS）は、受託者（Jeremy McCarver）に対し、以下の業務を委託する。<br>
+            ・企業名：タツタ電線株式会社<br>
+            ・研修名：2025年度 英語研修<br>
+            ・実施期間：2025年7月1日 〜 2026年4月30日<br>
+            ・レッスン数：30回<br>
+            ・実施形態：オンライン
+          </div>
+        </div>
+        
+        <div class="contract-section">
+          <div class="contract-section-title">第2条（報酬）</div>
+          <div>
+            1. 委託者は、受託者に対し、1回のレッスンにつき12,000円（税込）を支払う。<br>
+            2. 支払いは月末締め翌月末払いとする。<br>
+            3. 総報酬額は360,000円（税込）とする。
+          </div>
+        </div>
+        
+        <div class="contract-section">
+          <div class="contract-section-title">第3条（実施条件）</div>
+          <div>
+            1. 基本的な実施日時：火曜日 17:30-19:00<br>
+            2. 使用教材：Listen & Quick Answer Level 1<br>
+            3. レッスン開始10分前にはシステムに入室すること<br>
+            4. レッスン終了後、簡単なフィードバックを入力すること
+          </div>
+        </div>
+        
+        <div class="contract-section">
+          <div class="contract-section-title">第4条（契約期間）</div>
+          <div>
+            本契約の期間は、2025年7月1日から2026年4月30日までとする。
+          </div>
+        </div>
+        
+        <div style="margin-top: 2rem; text-align: center;">
+          <div>2025年1月20日</div>
+          <div style="margin-top: 1rem;">
+            <div>委託者：CTS　　　　　　　　　　　　　受託者：Jeremy McCarver</div>
+            <div>署名：＿＿＿＿＿＿＿＿　　　　　　　署名：＿＿＿＿＿＿＿＿</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZohoSign連携 -->
+    <div class="section">
+      <div class="section-title">ZohoSign連携</div>
+      <div class="zoho-integration">
+        <div class="zoho-status">
+          <div class="zoho-icon">Z</div>
+          <div>
+            <div><strong>ZohoSign連携ステータス：</strong> 接続済み</div>
+            <div><small>最終同期：2025年1月20日 14:30</small></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">署名期限</label>
+          <input type="date" class="form-input" value="2025-02-05">
+        </div>
+        <div class="form-group">
+          <label class="form-label">リマインダー設定</label>
+          <select class="form-select">
+            <option value="1">1日前</option>
+            <option value="3">3日前</option>
+            <option value="7">1週間前</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 契約履歴 -->
+    <div class="section">
+      <div class="section-title">契約履歴</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">2025年1月20日 14:00</div>
+          <div class="timeline-content">
+            <div class="timeline-author">田中（CTS）</div>
+            <div>契約書を作成しました。</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2025年1月20日 14:30</div>
+          <div class="timeline-content">
+            <div class="timeline-author">システム</div>
+            <div>契約書をZohoSignに送信しました。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- アクション -->
+    <div class="action-area">
+      <button class="action-btn secondary">下書き保存</button>
+      <button class="action-btn" onclick="location.href='contract_preview.html'">プレビュー</button>
+      <button class="action-btn warning">ZohoSignに送信</button>
+      <button class="action-btn success">契約完了</button>
+    </div>
+  </div>
+</body>
+</html> 

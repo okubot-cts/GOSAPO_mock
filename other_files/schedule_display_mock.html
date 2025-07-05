@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - スケジュール表示</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; }
+    .view-controls { display: flex; gap: 1rem; align-items: center; }
+    .view-toggle { display: flex; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; }
+    .view-toggle button { padding: 0.5rem 1rem; border: none; background: #fff; cursor: pointer; }
+    .view-toggle button.active { background: #007bff; color: #fff; }
+    .view-toggle button:hover:not(.active) { background: #f8f9fa; }
+    .filters { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 2rem; display: flex; gap: 1rem; align-items: center; }
+    .filter-group { display: flex; flex-direction: column; }
+    .filter-group label { font-size: 0.9rem; margin-bottom: 0.3rem; font-weight: 600; }
+    .filter-group select, .filter-group input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+    .btn-primary { background: #007bff; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .calendar-container { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; overflow: hidden; }
+    .calendar-header { padding: 1rem; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+    .calendar-nav { display: flex; gap: 0.5rem; align-items: center; }
+    .calendar-nav button { background: #fff; border: 1px solid #ddd; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; }
+    .calendar-nav button:hover { background: #f8f9fa; }
+    .calendar-current { font-weight: bold; font-size: 1.1rem; }
+    .calendar-grid { display: grid; grid-template-columns: 120px repeat(7, 1fr); }
+    .calendar-time-slot { padding: 0.5rem; border-bottom: 1px solid #eee; background: #f8f9fa; font-size: 0.9rem; display: flex; align-items: center; }
+    .calendar-day-header { padding: 1rem 0.5rem; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; text-align: center; font-weight: bold; }
+    .calendar-day-header.today { background: #e3f2fd; color: #007bff; }
+    .calendar-cell { padding: 0.5rem; border-bottom: 1px solid #eee; border-right: 1px solid #eee; min-height: 60px; position: relative; }
+    .calendar-cell.today { background: #f8f9ff; }
+    .lesson-block { background: #007bff; color: #fff; padding: 0.3rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin-bottom: 0.2rem; cursor: pointer; }
+    .lesson-block:hover { background: #0056b3; }
+    .lesson-block.confirmed { background: #28a745; }
+    .lesson-block.tentative { background: #ffc107; color: #000; }
+    .lesson-block.cancelled { background: #dc3545; }
+    .lesson-block.conflict { background: #fd7e14; }
+    .lesson-details { position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 1rem; z-index: 10; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .lesson-block:hover .lesson-details { display: block; }
+    .legend { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+    .legend-color { width: 16px; height: 16px; border-radius: 4px; }
+    .instructor-schedule { margin-bottom: 2rem; }
+    .instructor-tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 1rem; }
+    .instructor-tab { padding: 0.75rem 1.5rem; cursor: pointer; border-bottom: 2px solid transparent; }
+    .instructor-tab.active { border-bottom-color: #007bff; color: #007bff; font-weight: bold; }
+    .instructor-tab:hover { background: #f8f9fa; }
+    .schedule-summary { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 2rem; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+    .summary-item { text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 4px; }
+    .summary-number { font-size: 1.8rem; font-weight: bold; color: #007bff; }
+    .summary-label { font-size: 0.9rem; color: #666; margin-top: 0.3rem; }
+    .gantt-view { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; }
+    .gantt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .gantt-grid { display: grid; grid-template-columns: 200px 1fr; gap: 1rem; }
+    .gantt-labels { display: flex; flex-direction: column; gap: 0.5rem; }
+    .gantt-label { padding: 0.75rem; background: #f8f9fa; border-radius: 4px; font-size: 0.9rem; }
+    .gantt-timeline { display: flex; flex-direction: column; gap: 0.5rem; }
+    .gantt-row { display: flex; align-items: center; height: 40px; }
+    .gantt-bar { height: 30px; border-radius: 4px; position: relative; margin: 0 2px; }
+    .gantt-bar.project-1 { background: #007bff; }
+    .gantt-bar.project-2 { background: #28a745; }
+    .gantt-bar.project-3 { background: #ffc107; }
+    .gantt-bar.project-4 { background: #dc3545; }
+    .gantt-bar-text { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); color: #fff; font-size: 0.8rem; font-weight: bold; }
+    .conflict-alerts { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 2rem; }
+    .conflict-item { border-left: 4px solid #dc3545; padding: 1rem; margin-bottom: 1rem; background: #f8f9fa; }
+    .conflict-title { font-weight: bold; color: #dc3545; margin-bottom: 0.5rem; }
+    .conflict-details { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+    .conflict-actions { display: flex; gap: 0.5rem; }
+    .action-btn { background: none; border: none; color: #007bff; cursor: pointer; font-size: 0.9rem; }
+    .action-btn:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">GOSAPO運営スタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>研修一覧</li>
+      <li>オファー管理</li>
+      <li>日程調整</li>
+      <li>ダッシュボード</li>
+      <li class="active">スケジュール</li>
+      <li>講師一覧</li>
+      <li>クライアント管理</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">← ダッシュボード</div>
+    
+    <div class="page-header">
+      <div class="page-title">スケジュール表示</div>
+      <div class="view-controls">
+        <div class="view-toggle">
+          <button class="active">週表示</button>
+          <button>月表示</button>
+          <button>ガント</button>
+        </div>
+        <button class="btn-primary">新規予約</button>
+      </div>
+    </div>
+
+    <!-- フィルター -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>講師</label>
+        <select>
+          <option>全て</option>
+          <option>Jeremy McCarver</option>
+          <option>Matt Lowerson</option>
+          <option>Stephen Sumi</option>
+          <option>陸ペイ</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>プロジェクト</label>
+        <select>
+          <option>全て</option>
+          <option>タツタ電線</option>
+          <option>ABC商事</option>
+          <option>XYZ製造</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>ステータス</label>
+        <select>
+          <option>全て</option>
+          <option>確定</option>
+          <option>仮予約</option>
+          <option>キャンセル</option>
+        </select>
+      </div>
+      <button class="btn-secondary">フィルター適用</button>
+    </div>
+
+    <!-- サマリー -->
+    <div class="schedule-summary">
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-number">42</div>
+          <div class="summary-label">今週のレッスン</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-number">38</div>
+          <div class="summary-label">確定済み</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-number">4</div>
+          <div class="summary-label">仮予約</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-number">2</div>
+          <div class="summary-label">競合アラート</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 競合アラート -->
+    <div class="conflict-alerts">
+      <h3>競合アラート</h3>
+      <div class="conflict-item">
+        <div class="conflict-title">講師スケジュール競合</div>
+        <div class="conflict-details">
+          Jeremy McCarver - 7/25 17:30-19:00<br>
+          タツタ電線 第16回 と ABC商事 第3回 が重複しています
+        </div>
+        <div class="conflict-actions">
+          <button class="action-btn">調整</button>
+          <button class="action-btn">詳細</button>
+        </div>
+      </div>
+      <div class="conflict-item">
+        <div class="conflict-title">教室重複</div>
+        <div class="conflict-details">
+          大阪本社 会議室A - 7/30 18:00-19:30<br>
+          XYZ製造 中国語クラス と DEF企業 英語クラス が重複しています
+        </div>
+        <div class="conflict-actions">
+          <button class="action-btn">調整</button>
+          <button class="action-btn">詳細</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 凡例 -->
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background: #28a745;"></div>
+        <span>確定済み</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #ffc107;"></div>
+        <span>仮予約</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #dc3545;"></div>
+        <span>キャンセル</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background: #fd7e14;"></div>
+        <span>競合</span>
+      </div>
+    </div>
+
+    <!-- 週表示カレンダー -->
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <div class="calendar-current">2025年7月 第1週</div>
+        <div class="calendar-nav">
+          <button>← 前週</button>
+          <button>今週</button>
+          <button>次週 →</button>
+        </div>
+      </div>
+      <div class="calendar-grid">
+        <div class="calendar-time-slot">時間</div>
+        <div class="calendar-day-header">日<br>7/6</div>
+        <div class="calendar-day-header">月<br>7/7</div>
+        <div class="calendar-day-header">火<br>7/8</div>
+        <div class="calendar-day-header">水<br>7/9</div>
+        <div class="calendar-day-header today">木<br>7/10</div>
+        <div class="calendar-day-header">金<br>7/11</div>
+        <div class="calendar-day-header">土<br>7/12</div>
+        
+        <div class="calendar-time-slot">09:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        
+        <div class="calendar-time-slot">10:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        
+        <div class="calendar-time-slot">11:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        
+        <div class="calendar-time-slot">13:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        
+        <div class="calendar-time-slot">14:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        
+        <div class="calendar-time-slot">15:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        
+        <div class="calendar-time-slot">16:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        
+        <div class="calendar-time-slot">17:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell">
+          <div class="lesson-block confirmed">
+            タツタ電線 Basic1
+            <div class="lesson-details">
+              <strong>タツタ電線 英語 Basic 1</strong><br>
+              講師: Jeremy McCarver<br>
+              17:30-19:00<br>
+              参加者: 8名<br>
+              会議室: オンライン
+            </div>
+          </div>
+        </div>
+        <div class="calendar-cell">
+          <div class="lesson-block confirmed">
+            XYZ製造 中国語
+            <div class="lesson-details">
+              <strong>XYZ製造 中国語入門</strong><br>
+              講師: 陸ペイ<br>
+              17:30-19:00<br>
+              参加者: 5名<br>
+              会議室: 東京本社A
+            </div>
+          </div>
+        </div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell">
+          <div class="lesson-block tentative">
+            ABC商事 役員
+            <div class="lesson-details">
+              <strong>ABC商事 役員向け英語</strong><br>
+              講師: Matt Lowerson<br>
+              17:30-19:00<br>
+              参加者: 3名<br>
+              会議室: 仮予約中
+            </div>
+          </div>
+        </div>
+        <div class="calendar-cell"></div>
+        
+        <div class="calendar-time-slot">18:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        
+        <div class="calendar-time-slot">19:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        
+        <div class="calendar-time-slot">20:00</div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell today"></div>
+        <div class="calendar-cell"></div>
+        <div class="calendar-cell"></div>
+      </div>
+    </div>
+
+    <!-- 講師別表示 -->
+    <div class="instructor-schedule">
+      <h3>講師別スケジュール</h3>
+      <div class="instructor-tabs">
+        <div class="instructor-tab active">Jeremy McCarver</div>
+        <div class="instructor-tab">Matt Lowerson</div>
+        <div class="instructor-tab">Stephen Sumi</div>
+        <div class="instructor-tab">陸ペイ</div>
+      </div>
+      <div class="schedule-summary">
+        <div class="summary-grid">
+          <div class="summary-item">
+            <div class="summary-number">12</div>
+            <div class="summary-label">今週のレッスン</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number">32</div>
+            <div class="summary-label">稼働時間</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number">3</div>
+            <div class="summary-label">担当クライアント</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number">95%</div>
+            <div class="summary-label">稼働率</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ガントチャート -->
+    <div class="gantt-view">
+      <div class="gantt-header">
+        <h3>プロジェクト進行状況</h3>
+        <div>
+          <button class="btn-secondary">今月</button>
+          <button class="btn-secondary">今四半期</button>
+        </div>
+      </div>
+      <div class="gantt-grid">
+        <div class="gantt-labels">
+          <div class="gantt-label">タツタ電線 英語研修</div>
+          <div class="gantt-label">ABC商事 役員研修</div>
+          <div class="gantt-label">XYZ製造 中国語研修</div>
+          <div class="gantt-label">DEF企業 TOEIC対策</div>
+        </div>
+        <div class="gantt-timeline">
+          <div class="gantt-row">
+            <div class="gantt-bar project-1" style="width: 60%; margin-left: 10%;">
+              <div class="gantt-bar-text">40レッスン (15/40)</div>
+            </div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-bar project-2" style="width: 40%; margin-left: 30%;">
+              <div class="gantt-bar-text">20レッスン (18/20)</div>
+            </div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-bar project-3" style="width: 50%; margin-left: 20%;">
+              <div class="gantt-bar-text">30レッスン (5/30)</div>
+            </div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-bar project-4" style="width: 30%; margin-left: 40%;">
+              <div class="gantt-bar-text">15レッスン (12/15)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

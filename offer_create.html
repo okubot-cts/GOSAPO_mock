@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 新規オファー作成</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 2rem; padding: 1.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-label { display: block; margin-bottom: 0.5rem; font-weight: bold; }
+    .form-input { width: 100%; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
+    .form-select { width: 100%; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; }
+    .form-textarea { width: 100%; padding: 0.7rem; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; min-height: 100px; resize: vertical; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+    .instructor-card { border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; cursor: pointer; }
+    .instructor-card:hover { background: #f8f9fa; }
+    .instructor-card.selected { border-color: #007bff; background: #e7f3ff; }
+    .instructor-name { font-weight: bold; margin-bottom: 0.5rem; }
+    .instructor-info { color: #666; font-size: 0.9rem; }
+    .schedule-input { margin-bottom: 1rem; }
+    .schedule-row { display: grid; grid-template-columns: 1fr 100px 100px 1fr; gap: 1rem; align-items: center; margin-bottom: 0.5rem; }
+    .action-btn { background: #007bff; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 2px; cursor: pointer; font-size: 1rem; margin-right: 1rem; }
+    .action-btn:hover { background: #0056b3; }
+    .action-btn.success { background: #28a745; }
+    .action-btn.success:hover { background: #1e7e34; }
+    .action-btn.secondary { background: #6c757d; }
+    .action-btn.secondary:hover { background: #545b62; }
+    .add-btn { background: #17a2b8; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 2px; cursor: pointer; font-size: 0.9rem; }
+    .add-btn:hover { background: #138496; }
+    .material-link { color: #007bff; text-decoration: underline; cursor: pointer; }
+    .required { color: #dc3545; }
+    .form-actions { text-align: center; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">CTSスタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>オファー管理</li>
+      <li>オファー一覧</li>
+      <li class="active">新規オファー</li>
+      <li>講師管理</li>
+      <li>研修情報</li>
+      <li>契約管理</li>
+      <li>日程調整</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">
+      <a href="offer_dashboard.html" class="material-link">&lt; オファー管理に戻る</a>
+    </div>
+
+    <form>
+      <!-- 研修基本情報 -->
+      <div class="section">
+        <div class="section-title">研修基本情報</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">企業名 <span class="required">*</span></label>
+            <input type="text" class="form-input" value="タツタ電線株式会社" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">研修名 <span class="required">*</span></label>
+            <input type="text" class="form-input" value="2025年度 英語研修" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">研修期間（開始）</label>
+            <input type="date" class="form-input" value="2025-07-01">
+          </div>
+          <div class="form-group">
+            <label class="form-label">研修期間（終了）</label>
+            <input type="date" class="form-input" value="2026-04-30">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">対象者</label>
+            <input type="text" class="form-input" value="全社員（希望者）">
+          </div>
+          <div class="form-group">
+            <label class="form-label">実施形態</label>
+            <select class="form-select">
+              <option value="online">オンライン</option>
+              <option value="offline">対面</option>
+              <option value="hybrid">オンライン・対面併用</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">研修概要</label>
+          <textarea class="form-textarea" placeholder="研修の概要を入力してください">英語・中国語の語学力向上を目的とした自己啓発型研修。複数クラスをレベル別に開講。</textarea>
+        </div>
+      </div>
+
+      <!-- 講師選択 -->
+      <div class="section">
+        <div class="section-title">講師選択</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">言語</label>
+            <select class="form-select">
+              <option value="english">英語</option>
+              <option value="chinese">中国語</option>
+              <option value="japanese">日本語</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">レベル</label>
+            <select class="form-select">
+              <option value="beginner">初級</option>
+              <option value="elementary">初中級</option>
+              <option value="intermediate">中級</option>
+              <option value="advanced">上級</option>
+            </select>
+          </div>
+        </div>
+        <div class="instructor-card selected">
+          <div class="instructor-name">Jeremy McCarver</div>
+          <div class="instructor-info">英語ネイティブ講師・ビジネス英語/日常英会話10年以上<br>
+          連絡先: jeremy.mccarver@cts-education.com</div>
+        </div>
+        <div class="instructor-card">
+          <div class="instructor-name">Sarah Johnson</div>
+          <div class="instructor-info">英語ネイティブ講師・企業研修専門8年<br>
+          連絡先: sarah.johnson@cts-education.com</div>
+        </div>
+        <div class="instructor-card">
+          <div class="instructor-name">Michael Davis</div>
+          <div class="instructor-info">英語ネイティブ講師・プレゼンテーション指導専門<br>
+          連絡先: michael.davis@cts-education.com</div>
+        </div>
+      </div>
+
+      <!-- 仮日程 -->
+      <div class="section">
+        <div class="section-title">仮日程</div>
+        <div class="schedule-input">
+          <div class="schedule-row">
+            <div>
+              <label class="form-label">曜日・時間</label>
+              <input type="text" class="form-input" value="火曜日 17:30-19:00">
+            </div>
+            <div>
+              <label class="form-label">回数</label>
+              <input type="number" class="form-input" value="30" min="1">
+            </div>
+            <div>
+              <label class="form-label">頻度</label>
+              <select class="form-select">
+                <option value="weekly">週1回</option>
+                <option value="biweekly">2週間に1回</option>
+                <option value="monthly">月1回</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label">備考</label>
+              <input type="text" class="form-input" placeholder="特記事項">
+            </div>
+          </div>
+          <button type="button" class="add-btn">+ 日程を追加</button>
+        </div>
+      </div>
+
+      <!-- 報酬・条件 -->
+      <div class="section">
+        <div class="section-title">報酬・条件</div>
+        <div class="form-row three">
+          <div class="form-group">
+            <label class="form-label">1回あたりの報酬</label>
+            <input type="number" class="form-input" value="12000">
+          </div>
+          <div class="form-group">
+            <label class="form-label">通貨</label>
+            <select class="form-select">
+              <option value="JPY">JPY</option>
+              <option value="USD">USD</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">支払い条件</label>
+            <select class="form-select">
+              <option value="monthly">月払い</option>
+              <option value="per_lesson">レッスン毎</option>
+              <option value="lump_sum">一括払い</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">交通費</label>
+          <input type="text" class="form-input" value="実費支給（上限なし）">
+        </div>
+        <div class="form-group">
+          <label class="form-label">その他条件</label>
+          <textarea class="form-textarea" placeholder="追加の条件があれば記載してください"></textarea>
+        </div>
+      </div>
+
+      <!-- 教材・その他 -->
+      <div class="section">
+        <div class="section-title">教材・その他</div>
+        <div class="form-group">
+          <label class="form-label">使用予定教材</label>
+          <input type="text" class="form-input" value="Listen & Quick Answer Level 1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">特記事項</label>
+          <textarea class="form-textarea" placeholder="講師への特別な要望や注意事項があれば記載してください"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">回答期限</label>
+          <input type="date" class="form-input" value="2025-01-25">
+        </div>
+      </div>
+
+      <!-- アクション -->
+      <div class="form-actions">
+        <button type="button" class="action-btn secondary">下書き保存</button>
+        <button type="button" class="action-btn" onclick="location.href='offer_preview.html'">プレビュー</button>
+        <button type="submit" class="action-btn success">オファー送信</button>
+      </div>
+    </form>
+  </div>
+</body>
+</html> 

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - オファー一覧</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; color: #28a745; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #e8f5e8; font-weight: bold; color: #28a745; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; }
+    .page-subtitle { color: #666; font-size: 1rem; margin-top: 0.3rem; }
+    .btn-primary { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #218838; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-warning:hover { background: #e0a800; }
+    .btn-danger { background: #dc3545; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-danger:hover { background: #c82333; }
+    .stats-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .stat-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .stat-number { font-size: 2rem; font-weight: bold; color: #28a745; }
+    .stat-label { font-size: 0.9rem; color: #666; margin-top: 0.5rem; }
+    .filters { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; }
+    .filter-row { display: flex; gap: 1rem; margin-bottom: 1rem; align-items: center; }
+    .filter-group { display: flex; flex-direction: column; }
+    .filter-group label { font-size: 0.9rem; margin-bottom: 0.3rem; font-weight: 600; }
+    .filter-group select, .filter-group input { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+    .tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 2rem; }
+    .tab { padding: 0.75rem 1.5rem; cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab.active { border-bottom-color: #28a745; color: #28a745; font-weight: bold; }
+    .tab:hover { background: #f8f9fa; }
+    .offers-container { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+    .offers-header { background: #f8f9fa; padding: 1rem; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; }
+    .offers-title { font-weight: bold; }
+    .offers-actions { display: flex; gap: 0.5rem; }
+    .offer-item { padding: 1.5rem; border-bottom: 1px solid #eee; transition: all 0.2s ease; cursor: pointer; }
+    .offer-item:hover { background: #f8fff8; }
+    .offer-item:last-child { border-bottom: none; }
+    .offer-item.urgent { border-left: 4px solid #dc3545; }
+    .offer-item.normal { border-left: 4px solid #28a745; }
+    .offer-item.responded { border-left: 4px solid #6c757d; background: #f8f9fa; }
+    .offer-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+    .offer-main { flex: 1; }
+    .offer-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 0.3rem; }
+    .offer-subtitle { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+    .offer-tags { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+    .tag { background: #e8f5e8; color: #28a745; padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.8rem; }
+    .tag.level { background: #e3f2fd; color: #1976d2; }
+    .tag.format { background: #fff3e0; color: #f57c00; }
+    .offer-meta { text-align: right; }
+    .deadline { font-size: 0.8rem; color: #dc3545; font-weight: bold; margin-bottom: 0.5rem; }
+    .deadline.normal { color: #28a745; }
+    .match-score { background: #28a745; color: #fff; padding: 0.3rem 0.6rem; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+    .match-score.high { background: #28a745; }
+    .match-score.medium { background: #ffc107; color: #000; }
+    .match-score.low { background: #dc3545; }
+    .offer-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .detail-item { text-align: center; }
+    .detail-value { font-weight: bold; color: #28a745; }
+    .detail-label { font-size: 0.8rem; color: #666; }
+    .offer-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+    .status-badge { padding: 0.25rem 0.5rem; border-radius: 12px; font-size: 0.8rem; font-weight: 500; }
+    .status-new { background: #d1ecf1; color: #0c5460; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-accepted { background: #d4edda; color: #155724; }
+    .status-declined { background: #f8d7da; color: #721c24; }
+    .status-negotiating { background: #e2e3e5; color: #495057; }
+    .quick-actions { position: fixed; bottom: 2rem; right: 2rem; background: #28a745; border-radius: 50px; padding: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    .quick-actions-menu { display: none; position: absolute; bottom: 100%; right: 0; background: #fff; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); min-width: 200px; }
+    .quick-actions-menu.visible { display: block; }
+    .quick-action-item { padding: 0.75rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .quick-action-item:hover { background: #f8f9fa; }
+    .quick-action-item:last-child { border-bottom: none; }
+    .fab-icon { color: #fff; font-size: 1.5rem; cursor: pointer; }
+    .empty-state { text-align: center; padding: 3rem; color: #666; }
+    .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .earnings-summary { background: #e8f5e8; border: 1px solid #c3e6cb; border-radius: 6px; padding: 1rem; margin-bottom: 2rem; }
+    .earnings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; text-align: center; }
+    .earnings-item { }
+    .earnings-value { font-size: 1.2rem; font-weight: bold; color: #28a745; }
+    .earnings-label { font-size: 0.8rem; color: #666; }
+    .notification-badge { background: #dc3545; color: #fff; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; position: absolute; top: -8px; right: -8px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Instructor</div>
+    <div class="user-info">Jeremy McCarver | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>ダッシュボード</li>
+      <li class="active">オファー一覧</li>
+      <li>進行中プロジェクト</li>
+      <li onclick="window.location.href='instructor_schedule_coordination.html'">日程調整</li>
+      <li>スケジュール</li>
+      <li>売上・報酬</li>
+      <li>プロフィール</li>
+      <li>メッセージ</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="page-header">
+      <div>
+        <div class="page-title">オファー一覧</div>
+        <div class="page-subtitle">新規案件とその他のオファー管理</div>
+      </div>
+      <div>
+        <button class="btn-secondary">プロフィール更新</button>
+      </div>
+    </div>
+
+    <!-- 統計カード -->
+    <div class="stats-cards">
+      <div class="stat-card">
+        <div class="stat-number">3</div>
+        <div class="stat-label">未回答オファー</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">12</div>
+        <div class="stat-label">今月受注</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">95%</div>
+        <div class="stat-label">平均マッチ度</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">¥480,000</div>
+        <div class="stat-label">今月収益予定</div>
+      </div>
+    </div>
+
+    <!-- 収益サマリー -->
+    <div class="earnings-summary">
+      <h4>今月の収益サマリー</h4>
+      <div class="earnings-grid">
+        <div class="earnings-item">
+          <div class="earnings-value">¥320,000</div>
+          <div class="earnings-label">確定収益</div>
+        </div>
+        <div class="earnings-item">
+          <div class="earnings-value">¥160,000</div>
+          <div class="earnings-label">調整中案件</div>
+        </div>
+        <div class="earnings-item">
+          <div class="earnings-value">¥80,000</div>
+          <div class="earnings-label">未回答オファー</div>
+        </div>
+        <div class="earnings-item">
+          <div class="earnings-value">32時間</div>
+          <div class="earnings-label">予定稼働時間</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- フィルター -->
+    <div class="filters">
+      <div class="filter-row">
+        <div class="filter-group">
+          <label>期間</label>
+          <select>
+            <option>全て</option>
+            <option>今週</option>
+            <option>今月</option>
+            <option>期限近い順</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>言語</label>
+          <select>
+            <option>全て</option>
+            <option>英語</option>
+            <option>中国語</option>
+            <option>韓国語</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>レベル</label>
+          <select>
+            <option>全て</option>
+            <option>初級</option>
+            <option>中級</option>
+            <option>上級</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>報酬範囲</label>
+          <select>
+            <option>全て</option>
+            <option>¥5,000〜</option>
+            <option>¥8,000〜</option>
+            <option>¥10,000〜</option>
+          </select>
+        </div>
+        <button class="btn-secondary">フィルター適用</button>
+      </div>
+    </div>
+
+    <!-- タブ -->
+    <div class="tabs">
+      <div class="tab active">全て (8)</div>
+      <div class="tab">未回答 (3) <span class="notification-badge">!</span></div>
+      <div class="tab">進行中 (2)</div>
+      <div class="tab">完了 (12)</div>
+      <div class="tab">見送り (5)</div>
+    </div>
+
+    <!-- オファー一覧 -->
+    <div class="offers-container">
+      <div class="offers-header">
+        <div class="offers-title">オファー一覧</div>
+        <div class="offers-actions">
+          <button class="btn-secondary">並び替え</button>
+          <button class="btn-secondary">一括操作</button>
+        </div>
+      </div>
+
+      <!-- 緊急オファー -->
+      <div class="offer-item urgent">
+        <div class="offer-header">
+          <div class="offer-main">
+            <div class="offer-title">タツタ電線 2025年度英語研修</div>
+            <div class="offer-subtitle">大手電線・ケーブル製造会社での企業研修</div>
+            <div class="offer-tags">
+              <span class="tag">英語</span>
+              <span class="tag level">初級〜中級</span>
+              <span class="tag format">オンライン・対面併用</span>
+              <span class="tag">製造業</span>
+            </div>
+          </div>
+          <div class="offer-meta">
+            <div class="deadline">回答期限: 7/15 (あと3日)</div>
+            <div class="match-score high">95%マッチ</div>
+          </div>
+        </div>
+        
+        <div class="offer-details">
+          <div class="detail-item">
+            <div class="detail-value">40回</div>
+            <div class="detail-label">総レッスン数</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">¥8,000</div>
+            <div class="detail-label">1回あたり報酬</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">10ヶ月</div>
+            <div class="detail-label">期間</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">8名</div>
+            <div class="detail-label">受講者数</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">¥320,000</div>
+            <div class="detail-label">総収益</div>
+          </div>
+        </div>
+
+        <div class="offer-actions">
+          <button class="btn-danger">お断り</button>
+          <button class="btn-warning">条件交渉</button>
+          <button class="btn-success">承諾</button>
+          <button class="btn-secondary">詳細確認</button>
+        </div>
+      </div>
+
+      <!-- 通常オファー -->
+      <div class="offer-item normal">
+        <div class="offer-header">
+          <div class="offer-main">
+            <div class="offer-title">ABC商事 役員向け英語研修</div>
+            <div class="offer-subtitle">役員レベル向けエグゼクティブ英語</div>
+            <div class="offer-tags">
+              <span class="tag">英語</span>
+              <span class="tag level">上級</span>
+              <span class="tag format">対面</span>
+              <span class="tag">エグゼクティブ</span>
+            </div>
+          </div>
+          <div class="offer-meta">
+            <div class="deadline normal">回答期限: 7/20 (あと8日)</div>
+            <div class="match-score high">88%マッチ</div>
+          </div>
+        </div>
+        
+        <div class="offer-details">
+          <div class="detail-item">
+            <div class="detail-value">20回</div>
+            <div class="detail-label">総レッスン数</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">¥15,000</div>
+            <div class="detail-label">1回あたり報酬</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">6ヶ月</div>
+            <div class="detail-label">期間</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">3名</div>
+            <div class="detail-label">受講者数</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">¥300,000</div>
+            <div class="detail-label">総収益</div>
+          </div>
+        </div>
+
+        <div class="offer-actions">
+          <button class="btn-danger">お断り</button>
+          <button class="btn-warning">条件交渉</button>
+          <button class="btn-success">承諾</button>
+          <button class="btn-secondary" onclick="window.location.href='instructor_offer_detail.html'">詳細確認</button>
+        </div>
+      </div>
+
+      <!-- 通常オファー2 -->
+      <div class="offer-item normal">
+        <div class="offer-header">
+          <div class="offer-main">
+            <div class="offer-title">XYZ製造 TOEIC対策講座</div>
+            <div class="offer-subtitle">製造業従業員向けTOEIC点数向上</div>
+            <div class="offer-tags">
+              <span class="tag">英語</span>
+              <span class="tag level">中級</span>
+              <span class="tag format">オンライン</span>
+              <span class="tag">TOEIC</span>
+            </div>
+          </div>
+          <div class="offer-meta">
+            <div class="deadline normal">回答期限: 7/25 (あと13日)</div>
+            <div class="match-score medium">75%マッチ</div>
+          </div>
+        </div>
+        
+        <div class="offer-details">
+          <div class="detail-item">
+            <div class="detail-value">15回</div>
+            <div class="detail-label">総レッスン数</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">¥6,500</div>
+            <div class="detail-label">1回あたり報酬</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">4ヶ月</div>
+            <div class="detail-label">期間</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">12名</div>
+            <div class="detail-label">受講者数</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">¥97,500</div>
+            <div class="detail-label">総収益</div>
+          </div>
+        </div>
+
+        <div class="offer-actions">
+          <button class="btn-danger">お断り</button>
+          <button class="btn-warning">条件交渉</button>
+          <button class="btn-success">承諾</button>
+          <button class="btn-secondary" onclick="window.location.href='instructor_offer_detail.html'">詳細確認</button>
+        </div>
+      </div>
+
+      <!-- 回答済みオファー -->
+      <div class="offer-item responded">
+        <div class="offer-header">
+          <div class="offer-main">
+            <div class="offer-title">DEF企業 新人研修英語</div>
+            <div class="offer-subtitle">新入社員向け基礎英語研修</div>
+            <div class="offer-tags">
+              <span class="tag">英語</span>
+              <span class="tag level">初級</span>
+              <span class="tag format">ハイブリッド</span>
+              <span class="tag">新人研修</span>
+            </div>
+          </div>
+          <div class="offer-meta">
+            <div class="deadline normal">回答済み</div>
+            <span class="status-badge status-accepted">承諾済み</span>
+          </div>
+        </div>
+        
+        <div class="offer-details">
+          <div class="detail-item">
+            <div class="detail-value">25回</div>
+            <div class="detail-label">総レッスン数</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">¥7,000</div>
+            <div class="detail-label">1回あたり報酬</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">6ヶ月</div>
+            <div class="detail-label">期間</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">15名</div>
+            <div class="detail-label">受講者数</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">¥175,000</div>
+            <div class="detail-label">総収益</div>
+          </div>
+        </div>
+
+        <div class="offer-actions">
+          <button class="btn-secondary" onclick="window.location.href='instructor_offer_detail.html'">詳細確認</button>
+          <button class="btn-primary" onclick="window.location.href='instructor_schedule_coordination.html'">日程調整へ</button>
+        </div>
+      </div>
+
+      <!-- お断りしたオファー -->
+      <div class="offer-item responded">
+        <div class="offer-header">
+          <div class="offer-main">
+            <div class="offer-title">GHI商事 土日集中英語</div>
+            <div class="offer-subtitle">土日集中レッスン</div>
+            <div class="offer-tags">
+              <span class="tag">英語</span>
+              <span class="tag level">中級</span>
+              <span class="tag format">対面</span>
+              <span class="tag">土日開催</span>
+            </div>
+          </div>
+          <div class="offer-meta">
+            <div class="deadline normal">回答済み</div>
+            <span class="status-badge status-declined">お断り</span>
+          </div>
+        </div>
+        
+        <div class="offer-details">
+          <div class="detail-item">
+            <div class="detail-value">8回</div>
+            <div class="detail-label">総レッスン数</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">¥12,000</div>
+            <div class="detail-label">1回あたり報酬</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">2ヶ月</div>
+            <div class="detail-label">期間</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">6名</div>
+            <div class="detail-label">受講者数</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-value">¥96,000</div>
+            <div class="detail-label">総収益</div>
+          </div>
+        </div>
+
+        <div class="offer-actions">
+          <button class="btn-secondary" onclick="window.location.href='instructor_offer_detail.html'">詳細確認</button>
+          <span style="font-size: 0.9rem; color: #666;">お断り理由: 土日対応不可</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- クイックアクション FAB -->
+    <div class="quick-actions">
+      <div class="fab-icon" onclick="toggleQuickActions()">⚡</div>
+      <div class="quick-actions-menu" id="quickActionsMenu">
+        <div class="quick-action-item">未回答オファーを一括確認</div>
+        <div class="quick-action-item">可用性カレンダー更新</div>
+        <div class="quick-action-item">報酬設定変更</div>
+        <div class="quick-action-item">プロフィール編集</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleQuickActions() {
+      const menu = document.getElementById('quickActionsMenu');
+      menu.classList.toggle('visible');
+    }
+
+    // メニュー外クリックで閉じる
+    document.addEventListener('click', function(event) {
+      const quickActions = document.querySelector('.quick-actions');
+      const menu = document.getElementById('quickActionsMenu');
+      
+      if (!quickActions.contains(event.target)) {
+        menu.classList.remove('visible');
+      }
+    });
+  </script>
+</body>
+</html>

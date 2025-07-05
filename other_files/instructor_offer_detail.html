@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - オファー詳細</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; color: #28a745; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #e8f5e8; font-weight: bold; color: #28a745; }
+    .main { margin-left: 200px; padding: 2rem 3vw; max-width: 1200px; }
+    .breadcrumb { color: #28a745; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .page-header { margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .page-subtitle { color: #666; font-size: 1rem; }
+    .btn-primary { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-primary:hover { background: #218838; }
+    .btn-secondary { background: #6c757d; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; margin-left: 0.5rem; }
+    .btn-secondary:hover { background: #545b62; }
+    .btn-success { background: #28a745; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 4px; cursor: pointer; font-size: 0.95rem; }
+    .btn-success:hover { background: #218838; }
+    .btn-warning { background: #ffc107; color: #000; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-warning:hover { background: #e0a800; }
+    .btn-danger { background: #dc3545; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-danger:hover { background: #c82333; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; color: #28a745; border-left: 4px solid #28a745; padding-left: 0.5rem; }
+    .alert { padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; }
+    .alert-info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+    .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+    .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .offer-status { background: #28a745; color: #fff; padding: 1rem; border-radius: 8px; text-align: center; margin-bottom: 2rem; }
+    .status-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .status-description { font-size: 0.9rem; opacity: 0.9; }
+    .status-urgent { background: #dc3545; }
+    .status-normal { background: #28a745; }
+    .status-responded { background: #6c757d; }
+    .offer-summary { background: #f8f9fa; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem; }
+    .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+    .summary-item { text-align: center; padding: 1rem; background: #fff; border-radius: 6px; border: 1px solid #e0e0e0; }
+    .summary-label { font-size: 0.8rem; color: #666; margin-bottom: 0.3rem; }
+    .summary-value { font-size: 1.1rem; font-weight: bold; color: #28a745; }
+    .match-score-detail { background: #e8f5e8; border: 1px solid #c3e6cb; border-radius: 8px; padding: 1rem; margin-bottom: 2rem; }
+    .match-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .match-score-big { font-size: 2rem; font-weight: bold; color: #28a745; }
+    .match-subtitle { font-size: 0.9rem; color: #666; }
+    .match-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+    .match-category { background: #fff; border-radius: 6px; padding: 1rem; }
+    .match-category-title { font-weight: bold; margin-bottom: 0.5rem; color: #28a745; }
+    .match-items { list-style: none; padding: 0; margin: 0; }
+    .match-item { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; }
+    .match-item-score { font-weight: bold; }
+    .score-excellent { color: #28a745; }
+    .score-good { color: #ffc107; }
+    .score-fair { color: #fd7e14; }
+    .client-details { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .detail-section { margin-bottom: 1.5rem; }
+    .detail-label { font-weight: bold; margin-bottom: 0.5rem; color: #28a745; }
+    .detail-table { width: 100%; border-collapse: collapse; }
+    .detail-table th, .detail-table td { text-align: left; padding: 0.5rem; border-bottom: 1px solid #eee; }
+    .detail-table th { color: #666; width: 120px; background: #f8f9fa; font-weight: 600; }
+    .compensation-breakdown { background: #e8f5e8; border: 1px solid #c3e6cb; border-radius: 6px; padding: 1rem; }
+    .earnings-item { display: flex; justify-content: space-between; margin-bottom: 0.5rem; }
+    .earnings-label { color: #666; }
+    .earnings-value { font-weight: bold; color: #28a745; }
+    .earnings-total { border-top: 2px solid #28a745; padding-top: 0.5rem; font-size: 1.1rem; }
+    .requirements-detail { background: #f8f9fa; border-radius: 6px; padding: 1rem; }
+    .requirement-category { margin-bottom: 1rem; }
+    .requirement-title { font-weight: bold; margin-bottom: 0.5rem; }
+    .requirement-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .requirement-tag { background: #28a745; color: #fff; padding: 0.2rem 0.5rem; border-radius: 8px; font-size: 0.8rem; }
+    .requirement-tag.optional { background: #6c757d; }
+    .requirement-tag.missing { background: #dc3545; }
+    .training-content { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .content-section { margin-bottom: 1rem; }
+    .content-title { font-weight: bold; margin-bottom: 0.5rem; color: #28a745; }
+    .content-list { margin: 0.5rem 0; padding-left: 1.5rem; }
+    .schedule-preview { background: #f8f9fa; border-radius: 6px; padding: 1rem; }
+    .schedule-pattern { font-weight: bold; color: #28a745; margin-bottom: 0.5rem; }
+    .schedule-details { font-size: 0.9rem; color: #666; margin-bottom: 1rem; }
+    .schedule-calendar { background: #fff; border-radius: 4px; padding: 1rem; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .calendar-month { font-weight: bold; }
+    .calendar-nav { display: flex; gap: 0.5rem; }
+    .calendar-nav button { background: #fff; border: 1px solid #ddd; padding: 0.3rem 0.8rem; border-radius: 4px; cursor: pointer; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+    .calendar-day { padding: 0.5rem; text-align: center; border: 1px solid #eee; min-height: 40px; display: flex; align-items: center; justify-content: center; }
+    .calendar-day.header { background: #f8f9fa; font-weight: bold; font-size: 0.8rem; }
+    .calendar-day.lesson { background: #e8f5e8; color: #28a745; font-weight: bold; cursor: pointer; }
+    .calendar-day.lesson:hover { background: #d4edda; }
+    .calendar-day.other-month { color: #ccc; }
+    .similar-projects { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 8px; padding: 1rem; }
+    .project-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 0.5rem; background: #fff; }
+    .project-info { flex: 1; }
+    .project-title { font-weight: bold; margin-bottom: 0.3rem; }
+    .project-details { font-size: 0.9rem; color: #666; }
+    .project-rating { display: flex; align-items: center; gap: 0.5rem; }
+    .rating-stars { color: #ffc107; }
+    .rating-score { font-weight: bold; color: #1976d2; }
+    .response-options { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .response-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .response-card { border: 2px solid #e0e0e0; border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+    .response-card:hover { border-color: #28a745; background: #f8fff8; }
+    .response-card.selected { border-color: #28a745; background: #e8f5e8; }
+    .response-card.declined { border-color: #dc3545; background: #fff5f5; }
+    .response-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .response-title { font-weight: bold; margin-bottom: 0.5rem; }
+    .response-description { font-size: 0.9rem; color: #666; }
+    .negotiation-panel { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 1rem; margin-top: 1rem; display: none; }
+    .negotiation-panel.visible { display: block; }
+    .negotiation-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .negotiation-item { display: flex; flex-direction: column; }
+    .negotiation-label { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .negotiation-input, .negotiation-select { padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; font-size: 0.9rem; }
+    .comment-section { margin-top: 1.5rem; }
+    .comment-textarea { width: 100%; padding: 0.7rem; border: 1px solid #ddd; border-radius: 4px; min-height: 100px; resize: vertical; }
+    .action-panel { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; margin-top: 2rem; }
+    .action-buttons { display: flex; justify-content: space-between; align-items: center; }
+    .action-left { display: flex; gap: 1rem; }
+    .action-right { display: flex; gap: 1rem; }
+    .deadline-warning { background: #dc3545; color: #fff; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.9rem; }
+    .tabs { display: flex; border-bottom: 2px solid #e0e0e0; margin-bottom: 2rem; }
+    .tab { padding: 0.75rem 1.5rem; cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab.active { border-bottom-color: #28a745; color: #28a745; font-weight: bold; }
+    .tab:hover { background: #f8f9fa; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Instructor</div>
+    <div class="user-info">Jeremy McCarver | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>ダッシュボード</li>
+      <li class="active" onclick="window.location.href='instructor_offers_list.html'">オファー一覧</li>
+      <li>進行中プロジェクト</li>
+      <li onclick="window.location.href='instructor_schedule_coordination.html'">日程調整</li>
+      <li>スケジュール</li>
+      <li>売上・報酬</li>
+      <li>プロフィール</li>
+      <li>メッセージ</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb" onclick="window.location.href='instructor_offers_list.html'">← オファー一覧</div>
+    
+    <div class="page-header">
+      <div class="page-title">タツタ電線 2025年度英語研修</div>
+      <div class="page-subtitle">オファー詳細情報・マッチング分析</div>
+    </div>
+
+    <!-- オファーステータス -->
+    <div class="offer-status status-urgent">
+      <div class="status-title">🚨 回答期限: 7月15日まで（あと3日）</div>
+      <div class="status-description">高マッチング案件です。お早めのご回答をお願いいたします</div>
+    </div>
+
+    <!-- アラート -->
+    <div class="alert alert-success">
+      <strong>推奨案件:</strong> あなたの専門分野と経験に非常に適した案件です。過去の類似プロジェクトでの高評価実績があります。
+    </div>
+
+    <!-- オファーサマリー -->
+    <div class="offer-summary">
+      <h3>オファー概要</h3>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <div class="summary-label">企業</div>
+          <div class="summary-value">タツタ電線</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">総レッスン数</div>
+          <div class="summary-value">40回</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">頻度</div>
+          <div class="summary-value">週1回</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">1回時間</div>
+          <div class="summary-value">90分</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">報酬/回</div>
+          <div class="summary-value">¥8,000</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">総収益予定</div>
+          <div class="summary-value">¥320,000</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- マッチング詳細分析 -->
+    <div class="match-score-detail">
+      <div class="match-header">
+        <div>
+          <div class="match-score-big">95%</div>
+          <div class="match-subtitle">総合マッチング度</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-weight: bold; color: #28a745;">非常に適合</div>
+          <div style="font-size: 0.9rem; color: #666;">推奨案件</div>
+        </div>
+      </div>
+      
+      <div class="match-details">
+        <div class="match-category">
+          <div class="match-category-title">専門分野マッチ</div>
+          <ul class="match-items">
+            <li class="match-item">
+              <span>ビジネス英語</span>
+              <span class="match-item-score score-excellent">100%</span>
+            </li>
+            <li class="match-item">
+              <span>製造業経験</span>
+              <span class="match-item-score score-excellent">95%</span>
+            </li>
+            <li class="match-item">
+              <span>初級〜中級指導</span>
+              <span class="match-item-score score-excellent">98%</span>
+            </li>
+            <li class="match-item">
+              <span>グループレッスン</span>
+              <span class="match-item-score score-excellent">90%</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="match-category">
+          <div class="match-category-title">実施形態マッチ</div>
+          <ul class="match-items">
+            <li class="match-item">
+              <span>オンライン対応</span>
+              <span class="match-item-score score-excellent">100%</span>
+            </li>
+            <li class="match-item">
+              <span>対面指導</span>
+              <span class="match-item-score score-excellent">95%</span>
+            </li>
+            <li class="match-item">
+              <span>関西圏移動</span>
+              <span class="match-item-score score-excellent">90%</span>
+            </li>
+            <li class="match-item">
+              <span>夕方時間帯</span>
+              <span class="match-item-score score-good">85%</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="match-category">
+          <div class="match-category-title">過去実績マッチ</div>
+          <ul class="match-items">
+            <li class="match-item">
+              <span>同業界経験</span>
+              <span class="match-item-score score-excellent">95%</span>
+            </li>
+            <li class="match-item">
+              <span>同規模企業</span>
+              <span class="match-item-score score-excellent">88%</span>
+            </li>
+            <li class="match-item">
+              <span>長期契約経験</span>
+              <span class="match-item-score score-excellent">92%</span>
+            </li>
+            <li class="match-item">
+              <span>評価実績</span>
+              <span class="match-item-score score-excellent">98%</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- タブナビゲーション -->
+    <div class="tabs">
+      <div class="tab active" onclick="showTab('overview')">基本情報</div>
+      <div class="tab" onclick="showTab('schedule')">希望日程</div>
+      <div class="tab" onclick="showTab('response')">回答</div>
+    </div>
+
+    <!-- 基本情報タブ -->
+    <div class="tab-content active" id="overview-content">
+      <div class="client-details">
+        <div class="details-grid">
+          <div>
+            <div class="detail-section">
+              <div class="detail-label">クライアント基本情報</div>
+              <table class="detail-table">
+                <tr><th>企業名</th><td>タツタ電線株式会社</td></tr>
+                <tr><th>業界</th><td>電線・ケーブル製造業</td></tr>
+                <tr><th>所在地</th><td>大阪府東大阪市</td></tr>
+                <tr><th>参加者数</th><td>8名</td></tr>
+              </table>
+            </div>
+
+            <div class="detail-section">
+              <div class="detail-label">研修概要</div>
+              <table class="detail-table">
+                <tr><th>言語</th><td>英語</td></tr>
+                <tr><th>レベル</th><td>初級〜中級</td></tr>
+                <tr><th>実施形態</th><td>オンライン・対面併用</td></tr>
+                <tr><th>希望曜日</th><td>火曜日</td></tr>
+                <tr><th>希望時間</th><td>17:30-19:00</td></tr>
+              </table>
+            </div>
+          </div>
+
+          <div>
+            <div class="detail-section">
+              <div class="detail-label">報酬情報</div>
+              <div class="compensation-breakdown">
+                <div class="earnings-item">
+                  <span class="earnings-label">1回あたり報酬</span>
+                  <span class="earnings-value">¥8,000</span>
+                </div>
+                <div class="earnings-item">
+                  <span class="earnings-label">総レッスン数</span>
+                  <span class="earnings-value">40回</span>
+                </div>
+                <div class="earnings-item">
+                  <span class="earnings-label">交通費</span>
+                  <span class="earnings-value">実費支給</span>
+                </div>
+                <div class="earnings-item earnings-total">
+                  <span class="earnings-label">総収益予定</span>
+                  <span class="earnings-value">¥320,000</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="detail-section">
+              <div class="detail-label">基本要件</div>
+              <div class="requirements-detail">
+                <div class="requirement-category">
+                  <div class="requirement-tags">
+                    <span class="requirement-tag">ビジネス英語</span>
+                    <span class="requirement-tag">初級者指導</span>
+                    <span class="requirement-tag">グループレッスン</span>
+                    <span class="requirement-tag">関西圏対応可</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 簡潔な研修内容 -->
+      <div class="training-content">
+        <div class="section-title">研修内容</div>
+        <p><strong>目標:</strong> 製造業向けビジネス英語の習得（メール・電話・会議での基本コミュニケーション）</p>
+        <p><strong>特記事項:</strong> 電線・ケーブル業界の専門用語への対応が期待されます</p>
+      </div>
+    </div>
+
+    <!-- 希望日程タブ -->
+    <div class="tab-content" id="schedule-content">
+      <div class="schedule-preview">
+        <div class="section-title">クライアント希望日程</div>
+        
+        <div class="schedule-details">
+          <p><strong>第一希望:</strong> 毎週火曜 17:30-19:00</p>
+          <p><strong>第二希望:</strong> 毎週水曜 18:00-19:30</p>
+          <p><strong>第三希望:</strong> 毎週木曜 17:30-19:00</p>
+        </div>
+
+        <div style="background: #f8f9fa; padding: 1rem; border-radius: 6px; margin: 1rem 0;">
+          <h4>候補日程リスト</h4>
+          <div style="display: grid; gap: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff;">
+              <span><strong>パターンA:</strong> 毎週火曜 17:30-19:00</span>
+              <span style="color: #28a745; font-weight: bold;">✓ 対応可能</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff;">
+              <span><strong>パターンB:</strong> 毎週水曜 18:00-19:30</span>
+              <span style="color: #ffc107; font-weight: bold;">△ 要調整</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 4px; background: #fff;">
+              <span><strong>パターンC:</strong> 毎週木曜 17:30-19:00</span>
+              <span style="color: #dc3545; font-weight: bold;">✗ 困難</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="background: #e8f5e8; padding: 1rem; border-radius: 6px;">
+          <h4>推奨回答</h4>
+          <p><strong>パターンA（火曜 17:30-19:00）</strong>で承諾することをお勧めします。</p>
+          <p><small>理由: あなたの空き時間と完全に一致し、過去の同時間帯での指導実績も良好です。</small></p>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 回答・交渉タブ -->
+    <div class="tab-content" id="response-content">
+      <div class="response-options">
+        <div class="section-title">オファーへの回答</div>
+        
+        <div class="response-grid">
+          <div class="response-card" onclick="selectResponse('accept')">
+            <div class="response-icon">✅</div>
+            <div class="response-title">承諾</div>
+            <div class="response-description">提示条件で引き受けます</div>
+          </div>
+          
+          <div class="response-card" onclick="selectResponse('negotiate')">
+            <div class="response-icon">💬</div>
+            <div class="response-title">条件交渉</div>
+            <div class="response-description">一部条件の変更を希望</div>
+          </div>
+          
+          <div class="response-card" onclick="selectResponse('decline')">
+            <div class="response-icon">❌</div>
+            <div class="response-title">お断り</div>
+            <div class="response-description">今回はお受けできません</div>
+          </div>
+        </div>
+
+        <!-- 条件交渉パネル -->
+        <div class="negotiation-panel" id="negotiation-panel">
+          <h4>条件変更のご希望</h4>
+          <div class="negotiation-grid">
+            <div class="negotiation-item">
+              <label class="negotiation-label">希望料金（1回あたり）</label>
+              <input type="number" class="negotiation-input" value="8000" placeholder="8000">
+            </div>
+            <div class="negotiation-item">
+              <label class="negotiation-label">希望曜日</label>
+              <select class="negotiation-select">
+                <option>火曜日（提案通り）</option>
+                <option>水曜日</option>
+                <option>木曜日</option>
+                <option>その他（コメント欄に記載）</option>
+              </select>
+            </div>
+            <div class="negotiation-item">
+              <label class="negotiation-label">希望時間</label>
+              <select class="negotiation-select">
+                <option>17:30-19:00（提案通り）</option>
+                <option>18:00-19:30</option>
+                <option>19:00-20:30</option>
+                <option>その他（コメント欄に記載）</option>
+              </select>
+            </div>
+            <div class="negotiation-item">
+              <label class="negotiation-label">実施形態</label>
+              <select class="negotiation-select">
+                <option>オンライン・対面併用（提案通り）</option>
+                <option>オンラインのみ</option>
+                <option>対面のみ</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="comment-section">
+          <div class="detail-label">メッセージ（任意）</div>
+          <textarea class="comment-textarea" placeholder="ご質問やコメントがあれば記入してください。
+
+例：
+- 火曜日17:30-19:00で承諾いたします
+- 製造業での指導経験を活かします
+- 教材について事前相談希望"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- アクションパネル -->
+    <div class="action-panel">
+      <div class="action-buttons">
+        <div class="action-left">
+          <button class="btn-secondary">下書き保存</button>
+          <button class="btn-secondary">詳細資料請求</button>
+          <div class="deadline-warning">回答期限: 3日後</div>
+        </div>
+        <div class="action-right">
+          <button class="btn-danger">お断りする</button>
+          <button class="btn-warning">条件交渉で回答</button>
+          <button class="btn-success" onclick="window.location.href='instructor_schedule_coordination.html'">承諾して回答送信</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tabName) {
+      // すべてのタブとコンテンツから active クラスを削除
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      // クリックされたタブと対応するコンテンツに active クラスを追加
+      event.currentTarget.classList.add('active');
+      document.getElementById(tabName + '-content').classList.add('active');
+    }
+
+    function selectResponse(response) {
+      // すべての回答オプションから選択状態を解除
+      document.querySelectorAll('.response-card').forEach(card => {
+        card.classList.remove('selected', 'declined');
+      });
+      
+      // 選択されたオプションにスタイルを適用
+      event.currentTarget.classList.add(response === 'decline' ? 'declined' : 'selected');
+      
+      // 条件交渉パネルの表示制御
+      const negotiationPanel = document.getElementById('negotiation-panel');
+      if (response === 'negotiate') {
+        negotiationPanel.classList.add('visible');
+      } else {
+        negotiationPanel.classList.remove('visible');
+      }
+    }
+  </script>
+</body>
+</html>

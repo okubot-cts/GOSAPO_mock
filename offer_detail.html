@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - オファー詳細</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 2rem; padding: 1.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .info-table th, .info-table td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid #eee; }
+    .info-table th { color: #666; width: 140px; background: #f8f9fa; }
+    .status-badge { padding: 0.2rem 0.7rem; border-radius: 10px; font-size: 0.85rem; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-waiting { background: #cce7ff; color: #004085; }
+    .status-accepted { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-contracted { background: #e2e3e5; color: #383d41; }
+    .timeline { position: relative; padding-left: 2rem; }
+    .timeline-item { position: relative; padding-bottom: 1.5rem; }
+    .timeline-item:before { content: ''; position: absolute; left: -2rem; top: 0.5rem; width: 10px; height: 10px; background: #007bff; border-radius: 50%; }
+    .timeline-item:after { content: ''; position: absolute; left: -1.6rem; top: 1.2rem; width: 2px; height: calc(100% - 0.7rem); background: #ddd; }
+    .timeline-item:last-child:after { display: none; }
+    .timeline-date { font-size: 0.85rem; color: #666; margin-bottom: 0.3rem; }
+    .timeline-content { background: #f8f9fa; padding: 1rem; border-radius: 4px; border-left: 3px solid #007bff; }
+    .timeline-author { font-weight: bold; margin-bottom: 0.5rem; }
+    .action-btn { background: #007bff; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 2px; cursor: pointer; font-size: 1rem; margin-right: 1rem; }
+    .action-btn:hover { background: #0056b3; }
+    .action-btn.success { background: #28a745; }
+    .action-btn.success:hover { background: #1e7e34; }
+    .action-btn.warning { background: #ffc107; color: #212529; }
+    .action-btn.warning:hover { background: #e0a800; }
+    .action-btn.danger { background: #dc3545; }
+    .action-btn.danger:hover { background: #c82333; }
+    .material-link { color: #007bff; text-decoration: underline; cursor: pointer; }
+    .response-section { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-top: 1rem; }
+    .response-title { font-weight: bold; margin-bottom: 0.5rem; }
+    .response-content { margin-bottom: 1rem; }
+    .instructor-info { margin-top: 0.5rem; color: #555; }
+    .schedule-table { width: 100%; border-collapse: collapse; }
+    .schedule-table th, .schedule-table td { border: 1px solid #ddd; padding: 0.7rem; }
+    .schedule-table th { background: #f8f9fa; }
+    .schedule-table tr:nth-child(even) { background: #fafbfc; }
+    .action-area { text-align: center; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">CTSスタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>オファー管理</li>
+      <li class="active">オファー一覧</li>
+      <li>新規オファー</li>
+      <li>講師管理</li>
+      <li>研修情報</li>
+      <li>契約管理</li>
+      <li>日程調整</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">
+      <a href="offer_dashboard.html" class="material-link">&lt; オファー管理</a> | 
+      <a href="offer_list.html" class="material-link">オファー一覧</a>
+    </div>
+
+    <!-- オファー基本情報 -->
+    <div class="section">
+      <div class="section-title">オファー基本情報</div>
+      <table class="info-table">
+        <tr><th>オファーID</th><td>OFF-2025-001</td></tr>
+        <tr><th>作成日</th><td>2025年1月15日</td></tr>
+        <tr><th>作成者</th><td>田中（CTS）</td></tr>
+        <tr><th>ステータス</th><td><span class="status-badge status-waiting">回答待ち</span></td></tr>
+        <tr><th>回答期限</th><td>2025年1月25日</td></tr>
+        <tr><th>最終更新</th><td>2025年1月18日 10:30</td></tr>
+      </table>
+    </div>
+
+    <!-- 研修情報 -->
+    <div class="section">
+      <div class="section-title">研修情報</div>
+      <table class="info-table">
+        <tr><th>企業名</th><td>タツタ電線株式会社</td></tr>
+        <tr><th>研修名</th><td>2025年度 英語研修</td></tr>
+        <tr><th>研修期間</th><td>2025年7月1日 〜 2026年4月30日</td></tr>
+        <tr><th>対象者</th><td>全社員（希望者）</td></tr>
+        <tr><th>実施形態</th><td>オンライン</td></tr>
+        <tr><th>研修概要</th><td>英語・中国語の語学力向上を目的とした自己啓発型研修。複数クラスをレベル別に開講。</td></tr>
+      </table>
+    </div>
+
+    <!-- 講師情報 -->
+    <div class="section">
+      <div class="section-title">講師情報</div>
+      <table class="info-table">
+        <tr><th>講師名</th><td>Jeremy McCarver</td></tr>
+        <tr><th>メール</th><td>jeremy.mccarver@cts-education.com</td></tr>
+        <tr><th>専門分野</th><td>英語ネイティブ講師・ビジネス英語/日常英会話</td></tr>
+        <tr><th>経験年数</th><td>10年以上</td></tr>
+        <tr><th>過去の契約</th><td>5件（すべて完了）</td></tr>
+      </table>
+    </div>
+
+    <!-- 仮日程 -->
+    <div class="section">
+      <div class="section-title">仮日程</div>
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th>曜日・時間</th>
+            <th>回数</th>
+            <th>頻度</th>
+            <th>備考</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>火曜日 17:30-19:00</td>
+            <td>30回</td>
+            <td>週1回</td>
+            <td>初級クラス</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 報酬・条件 -->
+    <div class="section">
+      <div class="section-title">報酬・条件</div>
+      <table class="info-table">
+        <tr><th>1回あたりの報酬</th><td>12,000 JPY</td></tr>
+        <tr><th>総報酬</th><td>360,000 JPY（30回分）</td></tr>
+        <tr><th>支払い条件</th><td>月払い</td></tr>
+        <tr><th>交通費</th><td>実費支給（上限なし）</td></tr>
+        <tr><th>使用予定教材</th><td>Listen & Quick Answer Level 1</td></tr>
+      </table>
+    </div>
+
+    <!-- 講師からの回答 -->
+    <div class="section">
+      <div class="section-title">講師からの回答</div>
+      <div class="response-section">
+        <div class="response-title">2025年1月18日 10:30 - Jeremy McCarver より</div>
+        <div class="response-content">
+          <p>オファーをありがとうございます。基本的な条件については承諾いたします。</p>
+          <p>ただし、以下の点について確認させてください：</p>
+          <ul>
+            <li>火曜日の17:30開始ですが、17:45開始にしていただくことは可能でしょうか？</li>
+            <li>教材の準備はいつ頃から開始予定でしょうか？</li>
+            <li>初回のレベルチェックは必要でしょうか？</li>
+          </ul>
+          <p>上記の確認ができましたら、正式に承諾させていただきます。</p>
+        </div>
+        <div class="response-title">質問・要望事項</div>
+        <div class="response-content">
+          <ul>
+            <li>開始時間の調整：17:30 → 17:45</li>
+            <li>教材準備スケジュール確認</li>
+            <li>レベルチェック実施の有無</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- やり取り履歴 -->
+    <div class="section">
+      <div class="section-title">やり取り履歴</div>
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-date">2025年1月15日 14:00</div>
+          <div class="timeline-content">
+            <div class="timeline-author">田中（CTS）</div>
+            <div>オファーを作成し、講師に送信しました。</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2025年1月16日 09:30</div>
+          <div class="timeline-content">
+            <div class="timeline-author">システム</div>
+            <div>講師がオファーを確認しました。</div>
+          </div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-date">2025年1月18日 10:30</div>
+          <div class="timeline-content">
+            <div class="timeline-author">Jeremy McCarver（講師）</div>
+            <div>オファーについて質問・要望事項とともに回答しました。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- アクション -->
+    <div class="action-area">
+      <button class="action-btn" onclick="location.href='offer_edit.html'">オファー編集</button>
+      <button class="action-btn success" onclick="location.href='offer_response.html'">回答対応</button>
+      <button class="action-btn warning" onclick="location.href='schedule_coordination.html'">日程調整</button>
+      <button class="action-btn" onclick="location.href='contract_create.html'">契約作成</button>
+      <button class="action-btn danger">オファー取消</button>
+    </div>
+  </div>
+</body>
+</html> 

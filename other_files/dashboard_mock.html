@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - ダッシュボード</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .page-header { display: flex; justify-content: between; align-items: center; margin-bottom: 2rem; }
+    .page-title { font-size: 1.5rem; font-weight: bold; }
+    .welcome-message { background: linear-gradient(135deg, #007bff, #0056b3); color: #fff; padding: 2rem; border-radius: 8px; margin-bottom: 2rem; }
+    .welcome-title { font-size: 1.3rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .welcome-subtitle { font-size: 1rem; opacity: 0.9; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+    .kpi-card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; text-align: center; transition: transform 0.2s ease; }
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .kpi-number { font-size: 2.5rem; font-weight: bold; margin-bottom: 0.5rem; }
+    .kpi-number.primary { color: #007bff; }
+    .kpi-number.success { color: #28a745; }
+    .kpi-number.warning { color: #ffc107; }
+    .kpi-number.danger { color: #dc3545; }
+    .kpi-label { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+    .kpi-change { font-size: 0.8rem; font-weight: bold; }
+    .kpi-change.positive { color: #28a745; }
+    .kpi-change.negative { color: #dc3545; }
+    .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+    .section-title a { color: #007bff; text-decoration: none; font-size: 0.9rem; }
+    .section-title a:hover { text-decoration: underline; }
+    .urgent-list { list-style: none; padding: 0; margin: 0; }
+    .urgent-item { border-left: 4px solid #dc3545; padding: 1rem; margin-bottom: 1rem; background: #f8f9fa; border-radius: 0 4px 4px 0; }
+    .urgent-item.warning { border-left-color: #ffc107; }
+    .urgent-item.info { border-left-color: #17a2b8; }
+    .urgent-title { font-weight: bold; margin-bottom: 0.5rem; }
+    .urgent-details { font-size: 0.9rem; color: #666; margin-bottom: 0.5rem; }
+    .urgent-actions { display: flex; gap: 0.5rem; }
+    .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-primary { background: #007bff; color: #fff; }
+    .btn-secondary { background: #6c757d; color: #fff; }
+    .btn-primary:hover { background: #0056b3; }
+    .btn-secondary:hover { background: #545b62; }
+    .progress-section { margin-bottom: 2rem; }
+    .progress-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 1rem; }
+    .progress-info { flex: 1; }
+    .progress-title { font-weight: bold; margin-bottom: 0.3rem; }
+    .progress-details { font-size: 0.9rem; color: #666; }
+    .progress-bar { width: 150px; height: 8px; background: #e9ecef; border-radius: 4px; overflow: hidden; margin-left: 1rem; }
+    .progress-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+    .progress-fill.high { background: #28a745; }
+    .progress-fill.medium { background: #ffc107; }
+    .progress-fill.low { background: #dc3545; }
+    .activity-feed { max-height: 400px; overflow-y: auto; }
+    .activity-item { display: flex; padding: 1rem 0; border-bottom: 1px solid #e0e0e0; }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 1rem; font-size: 1.2rem; color: #fff; }
+    .activity-icon.offer { background: #007bff; }
+    .activity-icon.schedule { background: #28a745; }
+    .activity-icon.alert { background: #dc3545; }
+    .activity-icon.system { background: #6c757d; }
+    .activity-content { flex: 1; }
+    .activity-title { font-weight: bold; margin-bottom: 0.3rem; }
+    .activity-details { font-size: 0.9rem; color: #666; margin-bottom: 0.3rem; }
+    .activity-time { font-size: 0.8rem; color: #999; }
+    .calendar-widget { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1rem; }
+    .calendar-mini { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; }
+    .calendar-day { padding: 0.5rem; text-align: center; font-size: 0.8rem; border: 1px solid #eee; }
+    .calendar-day.today { background: #007bff; color: #fff; }
+    .calendar-day.has-event { background: #e3f2fd; }
+    .upcoming-events { margin-top: 1rem; }
+    .event-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+    .event-item:last-child { border-bottom: none; }
+    .event-time { font-size: 0.8rem; color: #666; }
+    .event-title { font-size: 0.9rem; flex: 1; margin-left: 1rem; }
+    .chart-container { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; }
+    .chart-placeholder { height: 300px; background: #f8f9fa; border: 2px dashed #ddd; display: flex; align-items: center; justify-content: center; color: #666; border-radius: 4px; }
+    .quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+    .quick-action { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 1.5rem; text-align: center; cursor: pointer; transition: transform 0.2s ease; }
+    .quick-action:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .quick-action-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .quick-action-title { font-weight: bold; margin-bottom: 0.3rem; }
+    .quick-action-desc { font-size: 0.9rem; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">GOSAPO運営スタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>研修一覧</li>
+      <li onclick="window.location.href='offer_management_mock.html'">オファー管理</li>
+      <li onclick="window.location.href='schedule_coordination_mock.html'">日程調整</li>
+      <li class="active">ダッシュボード</li>
+      <li>スケジュール</li>
+      <li>講師一覧</li>
+      <li>クライアント管理</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="page-header">
+      <div class="page-title">ダッシュボード</div>
+    </div>
+
+    <!-- ウェルカムメッセージ -->
+    <div class="welcome-message">
+      <div class="welcome-title">お疲れ様です！</div>
+      <div class="welcome-subtitle">今日も効率的な研修管理をサポートします</div>
+    </div>
+
+    <!-- KPI カード -->
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-number primary">24</div>
+        <div class="kpi-label">進行中オファー</div>
+        <div class="kpi-change positive">+3 今月</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-number success">15</div>
+        <div class="kpi-label">今月成約</div>
+        <div class="kpi-change positive">+25%</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-number warning">127</div>
+        <div class="kpi-label">調整中レッスン</div>
+        <div class="kpi-change negative">-5 今週</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-number danger">8</div>
+        <div class="kpi-label">要対応アラート</div>
+        <div class="kpi-change negative">+2 今日</div>
+      </div>
+    </div>
+
+    <!-- クイックアクション -->
+    <div class="quick-actions">
+      <div class="quick-action" onclick="window.location.href='offer_management_mock.html'">
+        <div class="quick-action-icon">📋</div>
+        <div class="quick-action-title">新規オファー</div>
+        <div class="quick-action-desc">新しいオファーを作成</div>
+      </div>
+      <div class="quick-action" onclick="window.location.href='schedule_coordination_mock.html'">
+        <div class="quick-action-icon">📅</div>
+        <div class="quick-action-title">日程調整</div>
+        <div class="quick-action-desc">レッスン日程を調整</div>
+      </div>
+      <div class="quick-action">
+        <div class="quick-action-icon">👥</div>
+        <div class="quick-action-title">講師検索</div>
+        <div class="quick-action-desc">条件に合う講師を検索</div>
+      </div>
+      <div class="quick-action">
+        <div class="quick-action-icon">📊</div>
+        <div class="quick-action-title">レポート</div>
+        <div class="quick-action-desc">月次レポートを確認</div>
+      </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="dashboard-grid">
+      <div class="section">
+        <div class="section-title">
+          プロジェクト進行状況
+          <a href="#">すべて見る</a>
+        </div>
+        <div class="progress-section">
+          <div class="progress-item">
+            <div class="progress-info">
+              <div class="progress-title">タツタ電線 2025年度英語研修</div>
+              <div class="progress-details">40レッスン中 15回確定 | 期限: 2026/04/30</div>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill medium" style="width: 37.5%;"></div>
+            </div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-info">
+              <div class="progress-title">ABC商事 役員向け英語研修</div>
+              <div class="progress-details">20レッスン中 18回確定 | 期限: 2025/12/31</div>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill high" style="width: 90%;"></div>
+            </div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-info">
+              <div class="progress-title">XYZ製造 中国語入門研修</div>
+              <div class="progress-details">30レッスン中 5回確定 | 期限: 2026/03/31</div>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill low" style="width: 16.7%;"></div>
+            </div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-info">
+              <div class="progress-title">DEF企業 TOEIC対策講座</div>
+              <div class="progress-details">15レッスン中 12回確定 | 期限: 2026/02/28</div>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill high" style="width: 80%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          緊急対応項目
+          <a href="#">すべて見る</a>
+        </div>
+        <ul class="urgent-list">
+          <li class="urgent-item">
+            <div class="urgent-title">講師回答期限切れ</div>
+            <div class="urgent-details">Jeremy McCarver - タツタ電線案件<br>回答期限: 2025/07/02</div>
+            <div class="urgent-actions">
+              <button class="btn-sm btn-primary">催促</button>
+              <button class="btn-sm btn-secondary">詳細</button>
+            </div>
+          </li>
+          <li class="urgent-item warning">
+            <div class="urgent-title">日程調整遅延</div>
+            <div class="urgent-details">ABC商事 役員向け研修<br>調整期限: 2025/07/05</div>
+            <div class="urgent-actions">
+              <button class="btn-sm btn-primary">調整</button>
+              <button class="btn-sm btn-secondary">詳細</button>
+            </div>
+          </li>
+          <li class="urgent-item info">
+            <div class="urgent-title">新規オファー承認待ち</div>
+            <div class="urgent-details">GHI商事 海外赴任前研修<br>承認待ち: 2日</div>
+            <div class="urgent-actions">
+              <button class="btn-sm btn-primary">承認</button>
+              <button class="btn-sm btn-secondary">詳細</button>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 下部グリッド -->
+    <div class="dashboard-grid">
+      <div class="section">
+        <div class="section-title">
+          最近のアクティビティ
+          <a href="#">すべて見る</a>
+        </div>
+        <div class="activity-feed">
+          <div class="activity-item">
+            <div class="activity-icon offer">💼</div>
+            <div class="activity-content">
+              <div class="activity-title">新規オファー作成</div>
+              <div class="activity-details">JKL工業 技術英語研修のオファーが作成されました</div>
+              <div class="activity-time">2時間前</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon schedule">📅</div>
+            <div class="activity-content">
+              <div class="activity-title">日程確定</div>
+              <div class="activity-details">タツタ電線 第15回レッスンの日程が確定しました</div>
+              <div class="activity-time">4時間前</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon alert">⚠️</div>
+            <div class="activity-content">
+              <div class="activity-title">期限アラート</div>
+              <div class="activity-details">Jeremy McCarver の回答期限が近づいています</div>
+              <div class="activity-time">6時間前</div>
+            </div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-icon system">⚙️</div>
+            <div class="activity-content">
+              <div class="activity-title">システム更新</div>
+              <div class="activity-details">日程調整機能がアップデートされました</div>
+              <div class="activity-time">1日前</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">今月のカレンダー</div>
+        <div class="calendar-widget">
+          <div style="text-align: center; margin-bottom: 1rem; font-weight: bold;">2025年7月</div>
+          <div class="calendar-mini">
+            <div class="calendar-day">日</div>
+            <div class="calendar-day">月</div>
+            <div class="calendar-day">火</div>
+            <div class="calendar-day">水</div>
+            <div class="calendar-day">木</div>
+            <div class="calendar-day">金</div>
+            <div class="calendar-day">土</div>
+            <div class="calendar-day"></div>
+            <div class="calendar-day"></div>
+            <div class="calendar-day">1</div>
+            <div class="calendar-day">2</div>
+            <div class="calendar-day">3</div>
+            <div class="calendar-day today">4</div>
+            <div class="calendar-day">5</div>
+            <div class="calendar-day">6</div>
+            <div class="calendar-day">7</div>
+            <div class="calendar-day has-event">8</div>
+            <div class="calendar-day">9</div>
+            <div class="calendar-day">10</div>
+            <div class="calendar-day">11</div>
+            <div class="calendar-day">12</div>
+            <div class="calendar-day">13</div>
+            <div class="calendar-day">14</div>
+            <div class="calendar-day has-event">15</div>
+            <div class="calendar-day">16</div>
+            <div class="calendar-day">17</div>
+            <div class="calendar-day">18</div>
+            <div class="calendar-day">19</div>
+            <div class="calendar-day">20</div>
+            <div class="calendar-day">21</div>
+            <div class="calendar-day has-event">22</div>
+            <div class="calendar-day">23</div>
+            <div class="calendar-day">24</div>
+            <div class="calendar-day">25</div>
+            <div class="calendar-day">26</div>
+            <div class="calendar-day">27</div>
+            <div class="calendar-day">28</div>
+            <div class="calendar-day has-event">29</div>
+            <div class="calendar-day">30</div>
+            <div class="calendar-day">31</div>
+          </div>
+          <div class="upcoming-events">
+            <div style="font-weight: bold; margin-bottom: 0.5rem; font-size: 0.9rem;">今週の予定</div>
+            <div class="event-item">
+              <div class="event-time">7/8 17:30</div>
+              <div class="event-title">タツタ電線 第3回レッスン</div>
+            </div>
+            <div class="event-item">
+              <div class="event-time">7/15 17:30</div>
+              <div class="event-title">タツタ電線 第15回レッスン</div>
+            </div>
+            <div class="event-item">
+              <div class="event-time">7/22 17:30</div>
+              <div class="event-title">ABC商事 役員研修</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- チャート -->
+    <div class="chart-container">
+      <div class="section-title">月別売上推移</div>
+      <div class="chart-placeholder">
+        📊 チャートエリア<br>
+        <span style="font-size: 0.9rem; color: #999;">実装時にChart.jsやD3.jsを使用</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

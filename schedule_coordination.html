@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>GOSAPO - 日程調整</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; color: #333; margin: 0; }
+    .header { background: #fff; border-bottom: 1px solid #ddd; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-weight: bold; font-size: 1.2rem; }
+    .user-info { color: #666; font-size: 0.95rem; }
+    .sidebar { position: fixed; top: 60px; left: 0; width: 180px; height: calc(100vh - 60px); background: #fff; border-right: 1px solid #ddd; }
+    .sidebar ul { list-style: none; padding: 0; margin: 0; }
+    .sidebar li { padding: 1rem 1.2rem; border-bottom: 1px solid #eee; cursor: pointer; }
+    .sidebar li.active, .sidebar li:hover { background: #f0f4fa; font-weight: bold; }
+    .main { margin-left: 200px; padding: 2rem 3vw; }
+    .breadcrumb { color: #007bff; margin-bottom: 1rem; cursor: pointer; font-size: 0.95rem; }
+    .section { background: #fff; border: 1px solid #e0e0e0; border-radius: 4px; margin-bottom: 2rem; padding: 1.5rem; }
+    .section-title { font-size: 1.15rem; font-weight: bold; margin-bottom: 1rem; border-left: 4px solid #007bff; padding-left: 0.5rem; }
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
+    .info-table th, .info-table td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid #eee; }
+    .info-table th { color: #666; width: 140px; background: #f8f9fa; }
+    .schedule-table { width: 100%; border-collapse: collapse; }
+    .schedule-table th, .schedule-table td { border: 1px solid #ddd; padding: 0.7rem; text-align: center; }
+    .schedule-table th { background: #f8f9fa; }
+    .schedule-table tr:nth-child(even) { background: #fafbfc; }
+    .schedule-number { font-weight: bold; width: 60px; }
+    .schedule-date { width: 120px; }
+    .schedule-time { width: 150px; }
+    .schedule-status { width: 100px; }
+    .schedule-response { width: 100px; }
+    .schedule-comment { width: 200px; }
+    .status-badge { padding: 0.2rem 0.7rem; border-radius: 10px; font-size: 0.85rem; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-confirmed { background: #d4edda; color: #155724; }
+    .status-rejected { background: #f8d7da; color: #721c24; }
+    .status-tentative { background: #cce7ff; color: #004085; }
+    .response-ok { background: #d4edda; color: #155724; }
+    .response-ng { background: #f8d7da; color: #721c24; }
+    .response-conditional { background: #fff3cd; color: #856404; }
+    .response-pending { background: #e2e3e5; color: #383d41; }
+    .form-input { width: 100%; padding: 0.4rem; border: 1px solid #ccc; border-radius: 2px; font-size: 0.9rem; }
+    .form-select { width: 100%; padding: 0.4rem; border: 1px solid #ccc; border-radius: 2px; font-size: 0.9rem; }
+    .action-btn { background: #007bff; color: #fff; border: none; padding: 0.7rem 1.5rem; border-radius: 2px; cursor: pointer; font-size: 1rem; margin-right: 1rem; }
+    .action-btn:hover { background: #0056b3; }
+    .action-btn.success { background: #28a745; }
+    .action-btn.success:hover { background: #1e7e34; }
+    .action-btn.warning { background: #ffc107; color: #212529; }
+    .action-btn.warning:hover { background: #e0a800; }
+    .action-btn.secondary { background: #6c757d; }
+    .action-btn.secondary:hover { background: #545b62; }
+    .add-btn { background: #17a2b8; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 2px; cursor: pointer; font-size: 0.9rem; margin-bottom: 1rem; }
+    .add-btn:hover { background: #138496; }
+    .material-link { color: #007bff; text-decoration: underline; cursor: pointer; }
+    .batch-actions { margin-bottom: 1rem; }
+    .batch-actions .action-btn { margin-right: 0.5rem; }
+    .progress-info { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; }
+    .progress-bar { width: 100%; height: 20px; background: #e9ecef; border-radius: 10px; overflow: hidden; margin-top: 0.5rem; }
+    .progress-fill { height: 100%; background: #28a745; transition: width 0.3s ease; }
+    .instructor-response { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 4px; padding: 1rem; margin-bottom: 1rem; }
+    .response-title { font-weight: bold; margin-bottom: 0.5rem; }
+    .small-input { width: 80px; }
+    .action-area { text-align: center; margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">GOSAPO Coach</div>
+    <div class="user-info">CTSスタッフ | ログアウト</div>
+  </div>
+  <div class="sidebar">
+    <ul>
+      <li>オファー管理</li>
+      <li>オファー一覧</li>
+      <li>新規オファー</li>
+      <li>講師管理</li>
+      <li>研修情報</li>
+      <li>契約管理</li>
+      <li class="active">日程調整</li>
+      <li>レポート</li>
+      <li>設定</li>
+    </ul>
+  </div>
+  <div class="main">
+    <div class="breadcrumb">
+      <a href="offer_dashboard.html" class="material-link">&lt; オファー管理</a> | 
+      <a href="offer_detail.html" class="material-link">オファー詳細</a>
+    </div>
+
+    <!-- 基本情報 -->
+    <div class="section">
+      <div class="section-title">基本情報</div>
+      <table class="info-table">
+        <tr><th>オファーID</th><td>OFF-2025-001</td></tr>
+        <tr><th>企業名</th><td>タツタ電線株式会社</td></tr>
+        <tr><th>研修名</th><td>2025年度 英語研修</td></tr>
+        <tr><th>講師名</th><td>Jeremy McCarver</td></tr>
+        <tr><th>基本日程</th><td>火曜日 17:30-19:00 (週1回)</td></tr>
+        <tr><th>総回数</th><td>30回</td></tr>
+      </table>
+    </div>
+
+    <!-- 進捗状況 -->
+    <div class="section">
+      <div class="section-title">日程調整進捗</div>
+      <div class="progress-info">
+        <div><strong>確定済み：</strong> 8回 / 30回</div>
+        <div><strong>講師回答待ち：</strong> 5回</div>
+        <div><strong>未提示：</strong> 17回</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 27%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 講師からの最新回答 -->
+    <div class="section">
+      <div class="section-title">講師からの最新回答</div>
+      <div class="instructor-response">
+        <div class="response-title">2025年1月18日 10:30 - Jeremy McCarver より</div>
+        <div>
+          <p>第1回〜第3回の日程について回答いたします。</p>
+          <ul>
+            <li>第1回（7/2）：OK</li>
+            <li>第2回（7/9）：OK</li>
+            <li>第3回（7/16）：17:45開始であれば可能</li>
+          </ul>
+          <p>第4回以降についても、基本的に火曜日の17:30-19:00で問題ありませんが、8月の第2週は出張予定のため調整が必要です。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 一括操作 -->
+    <div class="section">
+      <div class="section-title">一括操作</div>
+      <div class="batch-actions">
+        <button class="add-btn" onclick="addScheduleRow()">+ 日程追加</button>
+        <button class="action-btn secondary">一括日程生成</button>
+        <button class="action-btn warning">講師に一括送信</button>
+        <button class="action-btn success">確定済み日程をエクスポート</button>
+      </div>
+    </div>
+
+    <!-- 日程詳細 -->
+    <div class="section">
+      <div class="section-title">日程詳細</div>
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th class="schedule-number">回</th>
+            <th class="schedule-date">日付</th>
+            <th class="schedule-time">時間</th>
+            <th class="schedule-status">ステータス</th>
+            <th class="schedule-response">講師回答</th>
+            <th class="schedule-comment">コメント</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="schedule-number">1</td>
+            <td><input type="date" class="form-input" value="2025-07-02"></td>
+            <td>
+              <input type="time" class="form-input small-input" value="17:30"> - 
+              <input type="time" class="form-input small-input" value="19:00">
+            </td>
+            <td><span class="status-badge status-confirmed">確定</span></td>
+            <td><span class="status-badge response-ok">OK</span></td>
+            <td>開講初回</td>
+            <td><button class="action-btn" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">編集</button></td>
+          </tr>
+          <tr>
+            <td class="schedule-number">2</td>
+            <td><input type="date" class="form-input" value="2025-07-09"></td>
+            <td>
+              <input type="time" class="form-input small-input" value="17:30"> - 
+              <input type="time" class="form-input small-input" value="19:00">
+            </td>
+            <td><span class="status-badge status-confirmed">確定</span></td>
+            <td><span class="status-badge response-ok">OK</span></td>
+            <td></td>
+            <td><button class="action-btn" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">編集</button></td>
+          </tr>
+          <tr>
+            <td class="schedule-number">3</td>
+            <td><input type="date" class="form-input" value="2025-07-16"></td>
+            <td>
+              <input type="time" class="form-input small-input" value="17:45"> - 
+              <input type="time" class="form-input small-input" value="19:15">
+            </td>
+            <td><span class="status-badge status-tentative">仮確定</span></td>
+            <td><span class="status-badge response-conditional">条件付OK</span></td>
+            <td>時間調整済み</td>
+            <td><button class="action-btn success" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">確定</button></td>
+          </tr>
+          <tr>
+            <td class="schedule-number">4</td>
+            <td><input type="date" class="form-input" value="2025-07-23"></td>
+            <td>
+              <input type="time" class="form-input small-input" value="17:30"> - 
+              <input type="time" class="form-input small-input" value="19:00">
+            </td>
+            <td><span class="status-badge status-pending">提示中</span></td>
+            <td><span class="status-badge response-pending">回答待ち</span></td>
+            <td></td>
+            <td><button class="action-btn" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">送信</button></td>
+          </tr>
+          <tr>
+            <td class="schedule-number">5</td>
+            <td><input type="date" class="form-input" value="2025-07-30"></td>
+            <td>
+              <input type="time" class="form-input small-input" value="17:30"> - 
+              <input type="time" class="form-input small-input" value="19:00">
+            </td>
+            <td><span class="status-badge status-pending">提示中</span></td>
+            <td><span class="status-badge response-pending">回答待ち</span></td>
+            <td></td>
+            <td><button class="action-btn" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">送信</button></td>
+          </tr>
+          <tr>
+            <td class="schedule-number">6</td>
+            <td><input type="date" class="form-input" value="2025-08-06"></td>
+            <td>
+              <input type="time" class="form-input small-input" value="17:30"> - 
+              <input type="time" class="form-input small-input" value="19:00">
+            </td>
+            <td><span class="status-badge status-pending">提示中</span></td>
+            <td><span class="status-badge response-pending">回答待ち</span></td>
+            <td></td>
+            <td><button class="action-btn" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">送信</button></td>
+          </tr>
+          <tr>
+            <td class="schedule-number">7</td>
+            <td><input type="date" class="form-input" value="2025-08-13"></td>
+            <td>
+              <input type="time" class="form-input small-input" value="17:30"> - 
+              <input type="time" class="form-input small-input" value="19:00">
+            </td>
+            <td><span class="status-badge status-rejected">要調整</span></td>
+            <td><span class="status-badge response-ng">NG</span></td>
+            <td>出張のため不可</td>
+            <td><button class="action-btn warning" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">再調整</button></td>
+          </tr>
+          <tr>
+            <td class="schedule-number">8</td>
+            <td><input type="date" class="form-input" value="2025-08-20"></td>
+            <td>
+              <input type="time" class="form-input small-input" value="17:30"> - 
+              <input type="time" class="form-input small-input" value="19:00">
+            </td>
+            <td><span class="status-badge status-confirmed">確定</span></td>
+            <td><span class="status-badge response-ok">OK</span></td>
+            <td>代替日程</td>
+            <td><button class="action-btn" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">編集</button></td>
+          </tr>
+          <tr>
+            <td class="schedule-number">9</td>
+            <td><input type="date" class="form-input"></td>
+            <td>
+              <input type="time" class="form-input small-input"> - 
+              <input type="time" class="form-input small-input">
+            </td>
+            <td><span class="status-badge status-pending">未設定</span></td>
+            <td><span class="status-badge response-pending">-</span></td>
+            <td></td>
+            <td><button class="action-btn secondary" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">設定</button></td>
+          </tr>
+          <tr>
+            <td class="schedule-number">10</td>
+            <td><input type="date" class="form-input"></td>
+            <td>
+              <input type="time" class="form-input small-input"> - 
+              <input type="time" class="form-input small-input">
+            </td>
+            <td><span class="status-badge status-pending">未設定</span></td>
+            <td><span class="status-badge response-pending">-</span></td>
+            <td></td>
+            <td><button class="action-btn secondary" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">設定</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- アクション -->
+    <div class="action-area">
+      <button class="action-btn secondary">下書き保存</button>
+      <button class="action-btn warning">講師に送信</button>
+      <button class="action-btn success">全日程確定</button>
+      <button class="action-btn" onclick="location.href='contract_create.html'">契約作成に進む</button>
+    </div>
+  </div>
+
+  <script>
+    function addScheduleRow() {
+      const table = document.querySelector('.schedule-table tbody');
+      const rowCount = table.rows.length;
+      const newRow = table.insertRow();
+      
+      newRow.innerHTML = `
+        <td class="schedule-number">${rowCount + 1}</td>
+        <td><input type="date" class="form-input"></td>
+        <td>
+          <input type="time" class="form-input small-input"> - 
+          <input type="time" class="form-input small-input">
+        </td>
+        <td><span class="status-badge status-pending">未設定</span></td>
+        <td><span class="status-badge response-pending">-</span></td>
+        <td></td>
+        <td><button class="action-btn secondary" style="font-size: 0.8rem; padding: 0.3rem 0.8rem;">設定</button></td>
+      `;
+    }
+  </script>
+</body>
+</html> 
